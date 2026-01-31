@@ -1,5 +1,5 @@
 import { generateEntitySecret, registerEntitySecretCiphertext, initiateDeveloperControlledWalletsClient } from '@circle-fin/developer-controlled-wallets';
-import { CIRCLE_API_KEY, ENTITY_SECRET } from '../utils/constants';
+import { CIRCLE_API_KEY, ENTITY_SECRET } from '../utils/constants.js';
 
 async function createCircleEntitySecret() {
     const entitySecret = await generateEntitySecret();

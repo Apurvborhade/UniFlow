@@ -1,12 +1,12 @@
 import express from 'express';
 
 // Middleware imports
-import { errorHandler } from './middleware/errorHandler.middleware';
+import { errorHandler } from './middleware/errorHandler.middleware.js';
 
 // Route imports
-import employeeRoutes from './routes/employees.routes';
-import payrollRoutes from './routes/payroll.routes';
-import treasuryRoutes from './routes/treasury.routes';
+import employeeRoutes from './routes/employees.routes.js';
+import payrollRoutes from './routes/payroll.routes.js';
+import treasuryRoutes from './routes/treasury.routes.js';
 
 
 const app = express();

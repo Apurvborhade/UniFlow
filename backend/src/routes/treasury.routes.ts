@@ -1,5 +1,5 @@
 import express from 'express'
-import { getDeveloperControlledWalletsClient } from '../utils/circle-utils'
+import { getDeveloperControlledWalletsClient } from '../utils/circle-utils.js'
 const app = express();
 
 const circleDeveloperSdkClientPromise = getDeveloperControlledWalletsClient();
