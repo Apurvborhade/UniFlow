@@ -8,11 +8,15 @@ import employeeRoutes from './routes/employees.routes';
 import payrollRoutes from './routes/payroll.routes';
 import treasuryRoutes from './routes/treasury.routes';
 
+
 const app = express();
+
+
+
 
 // System Health
 app.get('/api/health', (req, res) => {
-  res.status(200).send('OK');
+    res.status(200).send('OK');
 });
 
 // Payroll routes
