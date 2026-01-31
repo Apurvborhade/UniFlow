@@ -1,4 +1,4 @@
-import { generateEntitySecret, registerEntitySecretCiphertext } from '@circle-fin/developer-controlled-wallets';
+import { generateEntitySecret, registerEntitySecretCiphertext, initiateDeveloperControlledWalletsClient } from '@circle-fin/developer-controlled-wallets';
 import { CIRCLE_API_KEY, ENTITY_SECRET } from '../utils/constants';
 
 async function createCircleEntitySecret() {
@@ -13,4 +13,12 @@ async function registerCipherText() {
         recoveryFileDownloadPath: "/tmp",
     });
 }
-export { createCircleEntitySecret, registerCipherText };
+
+async function getDeveloperControlledWalletsClient() {
+    return await initiateDeveloperControlledWalletsClient({
+        apiKey: CIRCLE_API_KEY,
+        entitySecret: ENTITY_SECRET,
+    });
+}
+
+export { createCircleEntitySecret, registerCipherText, getDeveloperControlledWalletsClient };

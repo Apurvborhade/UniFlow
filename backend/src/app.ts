@@ -11,6 +11,7 @@ import treasuryRoutes from './routes/treasury.routes';
 
 const app = express();
 
+app.use(express.json());
 
 
 
