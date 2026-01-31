@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { getBalance } from '../services/treasury.service.js';
 import { getDeveloperControlledWalletsClient } from '../utils/circle-utils.js'
 
 const circleDeveloperSdkClientPromise = getDeveloperControlledWalletsClient();
@@ -34,15 +35,10 @@ async function createTreasury(req: any, res: any, next: any) {
 
 async function getTreasuryBalance(req: any, res: any, next: any) {
     try {
-        const wallets = await prisma.wallet.findMany();
-        const walletId = wallets[0].id;
-        console.log(walletId)
-        const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
-        const balanceResponse = await circleDeveloperSdkClient.getWalletTokenBalance({
-            id: walletId,
-        });
 
-        res.send({ walletId: walletId, balance: balanceResponse.data });
+        const balanceResponse = await getBalance();
+
+        res.send({ balance: balanceResponse.data });
     } catch (error) {
         next(error)
     }

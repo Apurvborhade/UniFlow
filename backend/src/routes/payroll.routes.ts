@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { runPayroll } from '../controller/payroll.controller.js';
 const app = express();
 
 
@@ -9,9 +10,7 @@ app.post('/approve',(req, res) => {
 });
 
 // Run Payroll
-app.post('/run',(req, res) => {
-  res.send('Payroll run successfully');
-});
+app.post('/run',runPayroll);
 
 // Payroll Status
 app.get('/status',(req, res) => {
