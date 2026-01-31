@@ -1,19 +1,16 @@
 import express from 'express'
-import { createTreasury } from '../controller/treasury.controller.js';
+import { createTreasury, getTreasuryBalance } from '../controller/treasury.controller.js';
 
 
 
 const app = express();
 
 
-
+// Create Treasury Wallet
 app.post('/create', createTreasury);
 
-
-
-app.get('/balance', (req, res) => {
-    res.send('Treasury Wallet balance retrieved successfully');
-});
+// Get Treasury Wallet Balance
+app.get('/balance', getTreasuryBalance);
 
 
 export default app;
