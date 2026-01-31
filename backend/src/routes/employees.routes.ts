@@ -1,5 +1,5 @@
 import express from 'express';
-import { createEmployee } from '../controller/employee.controller.js';
+import { createEmployee,getEmployees } from '../controller/employee.controller.js';
 
 const app = express();
 
@@ -12,9 +12,7 @@ app.post('/upload', (req, res) => {
 });
 
 // Get
-app.get('/', (req, res) => {
-  res.send('List of employees');
-});
+app.get('/', getEmployees);
 
 
 export default app;

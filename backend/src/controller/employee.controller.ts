@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { AppError } from "../utils/AppError.js";
 
 interface Employee {
     id?: string;
@@ -15,9 +16,11 @@ interface Employee {
 
 
 async function createEmployee(req: any, res: any, next: any) {
+    const { name, walletAddress, salaryAmount, preferredChain, status, lastPaidAt, totalPaid } = req.body;
     try {
-        const { name, walletAddress, salaryAmount, preferredChain, status, lastPaidAt, totalPaid } = req.body;
-
+        if (!name || !salaryAmount || !preferredChain || !status) {
+            throw new AppError('Missing required fields: name, salaryAmount, preferredChain, status', 400);
+        }
         const newEmployee = await prisma.employee.create({
             data: {
                 name,
@@ -34,6 +37,18 @@ async function createEmployee(req: any, res: any, next: any) {
     } catch (error) {
         next(error);
     }
+
 }
 
-export { createEmployee };
+async function getEmployees(req: any, res: any, next: any) {
+    try {
+        const employees = await prisma.employee.findMany();
+        res.status(200).send({ data: employees });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+
+export { createEmployee, getEmployees };
