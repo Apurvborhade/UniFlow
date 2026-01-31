@@ -1,11 +1,10 @@
 import express from 'express';
+import { createEmployee } from '../controller/employee.controller.js';
 
 const app = express();
 
 // Add Single Employee
-app.post('/add', (req, res) => {
-  res.send('Employee added successfully');
-});
+app.post('/add', createEmployee);
 
 // Bulk Add Employees
 app.post('/upload', (req, res) => {
