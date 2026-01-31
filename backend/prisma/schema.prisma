@@ -13,6 +13,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum EmployeeStatus {
+  ACTIVE
+  PAUSED
+  REMOVED
+}
+
 model Wallet {
   @@index([walletSetId])
   id           String   @id @default(uuid())
@@ -24,4 +30,21 @@ model Wallet {
   accountType  String
   updateDate   DateTime
   createDate   DateTime
+}
+
+
+model Employee {
+  id              String   @id @default(uuid())
+  name            String
+  walletAddress   String
+  salaryAmount    Decimal  @db.Decimal(18, 6) // USDC precision
+  preferredChain  String
+
+  status          EmployeeStatus @default(ACTIVE)
+
+  lastPaidAt      DateTime?
+  totalPaid       Decimal @default(0) @db.Decimal(18, 6)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
