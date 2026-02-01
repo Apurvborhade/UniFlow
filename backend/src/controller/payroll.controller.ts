@@ -1,10 +1,15 @@
 import { getEmployees } from "../services/employees.service.js";
+import { transferFunds } from "../services/payroll.services.js";
 import { getBalance } from "../services/treasury.service.js";
+import { getDeveloperControlledWalletsClient } from "../utils/circle-utils.js";
 
+const circleDeveloperSdkClientPromise = getDeveloperControlledWalletsClient();
 
 async function runPayroll(req: any, res: any, next: any) {
     try {
-        const employees = await getEmployees();
+        const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
+
+        const employees = await getEmployees() as any[];
 
         const totalSalary = employees?.reduce((acc: any, employee) => acc + employee.salaryAmount.toNumber(), 0.0);
 
@@ -16,6 +21,9 @@ async function runPayroll(req: any, res: any, next: any) {
             return acc;
         }, {});
 
+        // Run transfers
+        await transferFunds(employees, circleDeveloperSdkClient);
+        
         
         res.send({ message: 'Payroll run successfully', totalSalary: totalSalary, employeeCount: employees?.length, tokenBalances: tokenBalances });
     } catch (error) {

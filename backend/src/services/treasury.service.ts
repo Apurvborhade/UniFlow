@@ -8,6 +8,7 @@ async function getBalance() {
     const walletId = wallets[0].id;
 
     const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
+
     return await circleDeveloperSdkClient.getWalletTokenBalance({
         id: walletId,
     });
