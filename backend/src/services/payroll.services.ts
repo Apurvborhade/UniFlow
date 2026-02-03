@@ -6,8 +6,8 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
         try {
             // Create TX
             const res = await circleDeveloperSdkClient.createTransaction({
-                walletId: "4a8bd80c-c484-5613-ad4a-bf0db193d091",
-                tokenId: "f2ab11ae-53fa-5373-86e5-8b38447b65fb",
+                walletId: "4a8bd80c-c484-5613-ad4a-bf0db193d091", 
+                tokenId: "f2ab11ae-53fa-5373-86e5-8b38447b65fb", // USDC on Base Sepolia
                 destinationAddress: employee.walletAddress,
                 amount: [employee.salaryAmount.toString()],
                 fee: {

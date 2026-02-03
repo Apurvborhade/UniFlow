@@ -35,7 +35,6 @@ async function createTreasury(req: any, res: any, next: any) {
 
 async function getTreasuryBalance(req: any, res: any, next: any) {
     try {
-
         const balanceResponse = await getBalance();
 
         res.send({ balance: balanceResponse.data });
@@ -43,4 +42,15 @@ async function getTreasuryBalance(req: any, res: any, next: any) {
         next(error)
     }
 }
-export { createTreasury, getTreasuryBalance };
+
+async function getTreasuryWallets(req: any, res: any, next: any) {
+    try {
+        const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
+        const walletsResponse = await circleDeveloperSdkClient.listWallets();
+
+        res.send({ wallets: walletsResponse.data });
+    } catch (error) {
+        next(error)
+    }
+}
+export { createTreasury, getTreasuryBalance,getTreasuryWallets };

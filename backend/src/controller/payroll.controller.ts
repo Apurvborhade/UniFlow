@@ -15,6 +15,11 @@ async function runPayroll(req: any, res: any, next: any) {
 
         const balance = await getBalance();
 
+        const usdcAmount = balance.data?.tokenBalances?.find((token: any) => token.token.symbol === 'USDC')?.amount || 0;
+
+        if (usdcAmount < totalSalary) {
+            throw new Error('Insufficient funds in treasury to run payroll');
+        }
 
         const tokenBalances = balance.data?.tokenBalances?.reduce((acc: any, token: any) => {
             acc[token.token.blockchain] = token.amount;

@@ -1,5 +1,5 @@
 import express from 'express'
-import { createTreasury, getTreasuryBalance } from '../controller/treasury.controller.js';
+import { createTreasury, getTreasuryBalance, getTreasuryWallets } from '../controller/treasury.controller.js';
 
 
 
@@ -11,6 +11,9 @@ app.post('/create', createTreasury);
 
 // Get Treasury Wallet Balance
 app.get('/balance', getTreasuryBalance);
+
+// Get Treasury Wallet
+app.get('/', getTreasuryWallets); 
 
 
 
