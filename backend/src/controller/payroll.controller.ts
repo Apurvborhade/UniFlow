@@ -1,5 +1,5 @@
 import { getEmployees } from "../services/employees.service.js";
-import { transferFunds } from "../services/payroll.services.js";
+import { transferFunds } from "../services/payroll.service.js";
 import { getBalance } from "../services/treasury.service.js";
 import { getDeveloperControlledWalletsClient } from "../utils/circle-utils.js";
 

@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import { getBalance } from '../services/treasury.service.js';
+import { depositToGateway, getBalance } from '../services/treasury.service.js';
 import { getDeveloperControlledWalletsClient } from '../utils/circle-utils.js'
 
 const circleDeveloperSdkClientPromise = getDeveloperControlledWalletsClient();
@@ -53,4 +53,15 @@ async function getTreasuryWallets(req: any, res: any, next: any) {
         next(error)
     }
 }
-export { createTreasury, getTreasuryBalance,getTreasuryWallets };
+
+async function depositToGatewayController(req: any, res: any, next: any) {
+    try {
+        const { chains } = req.body;
+        await depositToGateway(chains);
+
+        res.send({ message: 'Deposit to Gateway successful' });
+    } catch (error) {
+        next(error)
+    }
+}
+export { createTreasury, getTreasuryBalance, getTreasuryWallets, depositToGatewayController };
