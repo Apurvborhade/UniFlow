@@ -4,10 +4,11 @@ import { prisma } from "../lib/prisma.js";
 async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleDeveloperControlledWalletsClient) {
     for (const employee of employees) {
         try {
+        
             // Create TX
             const res = await circleDeveloperSdkClient.createTransaction({
                 walletId: "4a8bd80c-c484-5613-ad4a-bf0db193d091", 
-                tokenId: "f2ab11ae-53fa-5373-86e5-8b38447b65fb", // USDC on Base Sepolia
+                tokenId: "bdf128b4-827b-5267-8f9e-243694989b5f", // USDC on Base Sepolia
                 destinationAddress: employee.walletAddress,
                 amount: [employee.salaryAmount.toString()],
                 fee: {
