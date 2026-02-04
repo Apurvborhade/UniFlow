@@ -11,22 +11,22 @@ async function createTreasury(req: any, res: any, next: any) {
         const response = await circleDeveloperSdkClient.createWalletSet({
             name: "Wallet Set A"
         });
-
         const walletCreationResponse = await circleDeveloperSdkClient.createWallets({
             accountType: "EOA",
-            blockchains: ["BASE-SEPOLIA"],
+            blockchains: ["ARC-TESTNET", "AVAX-FUJI", "BASE-SEPOLIA", "ETH-SEPOLIA"],
             count: 1,
             walletSetId: response.data?.walletSet.id || '',
+            metadata: [{ refId: "source-depositor" }]
         });
 
-        const wallet = walletCreationResponse.data?.wallets[0] as any;
+        const walletsData = walletCreationResponse.data
 
-        await prisma.wallet.create({
-            data: wallet
-        });
+        // await prisma.wallet.create({
+        //     data: wallet
+        // });
 
         await
-            res.send({ message: 'Treasury Wallet created successfully', data: wallet });
+            res.send({ message: 'Treasury Wallet created successfully', data:walletsData });
     } catch (error) {
         next(error)
     }

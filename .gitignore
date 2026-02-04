@@ -36,3 +36,7 @@ npm-debug.log*
 # Misc
 .cache/
 *.tmp
+
+
+scripts/deposit.ts
+scripts/transfer.ts

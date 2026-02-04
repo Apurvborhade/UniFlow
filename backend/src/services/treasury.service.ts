@@ -17,7 +17,7 @@ if (!CIRCLE_API_KEY || !ENTITY_SECRET) {
     process.exit(1);
 }
 
-const DEPOSIT_AMOUNT_USDC = "2";
+const DEPOSIT_AMOUNT_USDC = "1";
 
 async function depositToGateway(chains: string[] | undefined) {
     // Allows for chain selection via CLI arguments
@@ -36,6 +36,7 @@ async function depositToGateway(chains: string[] | undefined) {
     for (const chain of selectedChains) {
         const config = CHAIN_CONFIG[chain];
         const USDC_ADDRESS = config.usdc;
+        console.log(`Using USDC address: ${USDC_ADDRESS}`);
         const WALLET_ID = config.walletId;
 
         console.log(`\n--- ${config.chainName} ---`);
@@ -45,6 +46,10 @@ async function depositToGateway(chains: string[] | undefined) {
             `Approving ${DEPOSIT_AMOUNT_USDC} USDC for spender ${GATEWAY_WALLET_ADDRESS}`,
         );
 
+        // await showUnifiedAvailableBalance(client, WALLET_ID!);
+        const balance = await client.getWalletTokenBalance({ id: WALLET_ID! });
+
+        console.log(`${config.chainName} : `, balance.data?.tokenBalances);
         const approveTx = await client.createContractExecutionTransaction({
             walletId: WALLET_ID!,
             contractAddress: USDC_ADDRESS,
@@ -56,6 +61,7 @@ async function depositToGateway(chains: string[] | undefined) {
             fee: { type: "level", config: { feeLevel: "MEDIUM" } },
         });
 
+        console.log('first')
         const approveTxId = approveTx.data?.id;
         if (!approveTxId) throw new Error("Failed to create approve transaction");
 
@@ -78,6 +84,7 @@ async function depositToGateway(chains: string[] | undefined) {
         const depositTxId = depositTx.data?.id;
         if (!depositTxId) throw new Error("Failed to create deposit transaction");
 
+        await showUnifiedAvailableBalance(client, WALLET_ID!);
         await waitForTxCompletion(client, depositTxId, "Gateway deposit");
     }
 
@@ -142,6 +149,39 @@ async function showUnifiedAvailableBalance(client: any, walletId: string) {
     const totalUsdc = `${whole}.${decimal.toString().padStart(6, "0")}`;
     console.log(`Unified USDC available: ${totalUsdc} USDC`);
 }
+
+async function getUnifiedAvailableBalanceOfWallet(client: any, walletId: string) {
+    const { data } = await client.getWallet({ id: walletId });
+    const depositor = data?.wallet?.address;
+    if (!depositor) throw new Error("Could not resolve wallet address");
+    console.log(`Depositor address: ${depositor}`);
+
+    // Query Gateway for the available balance recorded by the system
+    const response = await fetch(`${GATEWAY_API}/balances`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            token: "USDC",
+            sources: chainList.map(({ domain }) => ({ domain, depositor })),
+        }),
+    });
+    const { balances = [] } = await response.json();
+
+    const balancesByChain: Record<string, string> = {};
+    for (const balance of balances) {
+        const amount = toBigInt(balance?.balance);
+        const chain =
+            domainNames[balance!.domain as number] ??
+            `Domain ${balance!.domain as number}`;
+        const formattedAmount = `${amount / 1_000_000n}.${(amount % 1_000_000n)
+            .toString()
+            .padStart(6, "0")}`;
+        balancesByChain[chain] = formattedAmount;
+    }
+    
+    return balancesByChain;
+
+}
 async function getBalance() {
     const wallets = await prisma.wallet.findMany();
     const walletId = wallets[0].id;
@@ -154,4 +194,4 @@ async function getBalance() {
 
 }
 
-export { getBalance, depositToGateway, showUnifiedAvailableBalance };
+export { getBalance, depositToGateway, showUnifiedAvailableBalance,getUnifiedAvailableBalanceOfWallet };

@@ -1,37 +1,150 @@
 import { CircleDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 import { prisma } from "../lib/prisma.js";
+import { parse } from "node:path";
+import { parseSelectedChains, waitForTxCompletion } from "../utils/arc/helper.js";
+import { CHAIN_CONFIG } from "../utils/arc/transferChainConfig.js";
+import { burnIntentTypedData, formatUnits, makeBurnIntent, stringifyTypedData } from "../utils/arc/transferHelper.js";
+import { DEPOSITOR_ADDRESS, DESTINATION_CHAIN, GATEWAY_MINTER_ADDRESS } from "../utils/arc/transferConstants.js";
+import { getUnifiedAvailableBalanceOfWallet, showUnifiedAvailableBalance } from "./treasury.service.js";
+
+const domain = { name: "GatewayWallet", version: "1" };
 
 async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleDeveloperControlledWalletsClient) {
+    const requests: any[] = [];
+    const burnIntentsForTotal: any[] = [];
+    console.log("Parsing selected chains...");
+    const chains = ["ethereum", "arc"];
+    const selectedChains = await parseSelectedChains(chains);
+    console.log("Selected chains:", selectedChains);
+    let unifiedBalanceMapping: Record<string, string> = {};
+
+    const amount = 1; // Amount per employee per chain
+
+    for (const chain of selectedChains) {
+        //     console.log(`Processing chain: ${chain}`);
+        const config = CHAIN_CONFIG[chain];
+        //     console.log(`Chain config retrieved for ${chain}`);
+
+        //     const burnIntent = makeBurnIntent(chain,amount);
+        //     console.log(`Burn intent created for ${chain}:`, burnIntent);
+
+        //     const typedData = burnIntentTypedData(burnIntent, domain);
+        //     console.log(`Typed data generated for ${chain}`);
+
+        //     console.log(`Signing typed data for wallet: ${config.walletId}`);
+        //     const sigResp = await circleDeveloperSdkClient.signTypedData({
+        //         walletId: config.walletId,
+        //         data: stringifyTypedData(typedData),
+        //     });
+        //     console.log(`Signature received for ${chain}:`, sigResp.data?.signature);
+
+        //     requests.push({
+        //         burnIntent: typedData.message,
+        //         signature: sigResp.data?.signature,
+        //     });
+
+        //     burnIntentsForTotal.push(burnIntent);
+        //     console.log(`Chain ${chain} processing complete`);
+        unifiedBalanceMapping = await getUnifiedAvailableBalanceOfWallet(circleDeveloperSdkClient, config.walletId!);
+    }
+
+    console.log(`Processing ${employees.length} employees...`);
     for (const employee of employees) {
+        console.log(employee.blockchain)
         try {
-        
-            // Create TX
-            const res = await circleDeveloperSdkClient.createTransaction({
-                walletId: "4a8bd80c-c484-5613-ad4a-bf0db193d091", 
-                tokenId: "bdf128b4-827b-5267-8f9e-243694989b5f", // USDC on Base Sepolia
-                destinationAddress: employee.walletAddress,
-                amount: [employee.salaryAmount.toString()],
-                fee: {
-                    type: "level", config: {
-                        feeLevel: "MEDIUM",
-                    }
-                },
-            });
-            console.log("Payroll Transfer Successful:", res.data);
-            // Store Tx Id
-            await prisma.transaction.create({
-                data: {
-                    id: res.data?.id as string,
+            console.log(`Processing employee: ${employee.id || employee.name}`);
+
+            // Create burn intents for chains with available balance
+            const employeeRequests: any[] = [];
+            const employeeBurnIntents: any[] = [];
+            let burnIntentCreated = false; // Flag to track if a burn intent has been created
+
+            for (const chain of selectedChains) {
+                const config = CHAIN_CONFIG[chain];
+                const chainName = Object.keys(unifiedBalanceMapping).find(
+                    key => key.toLowerCase().includes(chain.toLowerCase())
+                );
+
+                if (!chainName) continue;
+
+
+                const availableBalance = parseFloat(unifiedBalanceMapping[chainName]);
+                const employeeSalary = employee.salary || amount;
+
+                if (availableBalance >= employeeSalary && !burnIntentCreated) {
+
+                    const burnIntent = makeBurnIntent(chain, employee.preferredChain.toUpperCase(), employeeSalary);
+                    const typedData = burnIntentTypedData(burnIntent, domain);
+
+                    const sigResp = await circleDeveloperSdkClient.signTypedData({
+                        walletId: config.walletId,
+                        data: stringifyTypedData(typedData),
+                    });
+
+                    employeeRequests.push({
+                        burnIntent: typedData.message,
+                        signature: sigResp.data?.signature,
+                    });
+
+                    employeeBurnIntents.push(burnIntent);
+                    console.log(`Created burn intent for ${employee.id} on ${chain}: ${employeeSalary}`);
+                    burnIntentCreated = true; // Set flag to true after creating a burn intent
                 }
+            }
+
+            if (employeeRequests.length === 0) {
+                console.warn(`No chains with sufficient balance for employee ${employee.id}`);
+                continue;
+            }
+
+            const response = await fetch(
+                "https://gateway-api-testnet.circle.com/v1/transfer",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(employeeRequests, (_key, value) =>
+                        typeof value === "bigint" ? value.toString() : value,
+                    ),
+                },
+            );
+            console.log(`Gateway API response status: ${response.status}`);
+
+            const json = await response.json();
+            const attestation = json?.attestation;
+            const operatorSig = json?.signature;
+
+            if (!attestation || !operatorSig) {
+                console.error("Gateway /transfer error:", json);
+                continue;
+            }
+
+            const tx = await circleDeveloperSdkClient.createContractExecutionTransaction({
+                walletAddress: DEPOSITOR_ADDRESS,
+                blockchain: employee.preferredChain,
+                contractAddress: GATEWAY_MINTER_ADDRESS,
+                abiFunctionSignature: "gatewayMint(bytes,bytes)",
+                abiParameters: [attestation, operatorSig],
+                fee: { type: "level", config: { feeLevel: "MEDIUM" } },
             });
 
 
-            // Avoid rate limits
-            await new Promise(r => setTimeout(r, 500));
+            const txId = tx.data?.id;
+            if (!txId) throw new Error("Failed to submit mint transaction");
+            const txInfo = await circleDeveloperSdkClient.getTransaction({
+                id: txId
+            })
+            console.log("TX Info: ", txInfo.data)
+            await waitForTxCompletion(circleDeveloperSdkClient, txId, "USDC mint");
+
+            const totalMintBaseUnits = employeeBurnIntents.reduce(
+                (sum, i) => sum + (i.spec.value ?? 0n),
+                0n,
+            );
+            console.log(`Minted ${formatUnits(totalMintBaseUnits, 6)} USDC for employee ${employee.id}`);
 
         } catch (err: any) {
             console.log(err)
-            console.error("Payroll Transfer Failed:", err.message);
+            console.error("Payroll Transfer Failed for employee:", err.message);
         }
     }
 }
