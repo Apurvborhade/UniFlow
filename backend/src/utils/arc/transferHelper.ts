@@ -1,10 +1,10 @@
 import { randomBytes } from "node:crypto";
 import { Chain, CHAIN_CONFIG, WalletChain } from "./transferChainConfig.js";
-import { BurnIntent, BurnIntentType, DEPOSITOR_ADDRESS, DESTINATION_CHAIN, EIP712Domain, EIP712DomainType, GATEWAY_MINTER_ADDRESS, GATEWAY_WALLET_ADDRESS, MAX_UINT256_DEC, RECIPIENT_ADDRESS, TRANSFER_AMOUNT_USDC, TransferSpec } from "./transferConstants.js"
+import { BurnIntent, BurnIntentType, DEPOSITOR_ADDRESS, DESTINATION_CHAIN, EIP712Domain, EIP712DomainType, GATEWAY_MINTER_ADDRESS, GATEWAY_WALLET_ADDRESS, MAX_UINT256_DEC, TRANSFER_AMOUNT_USDC, TransferSpec } from "./transferConstants.js"
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 
 // Construct burn intent for a given source chain
-function makeBurnIntent(sourceChain: Chain, destinationChain: Chain, amount: number) {
+function makeBurnIntent(sourceChain: Chain, destinationChain: Chain,recipientAddress:string, amount: number) {
     const src = CHAIN_CONFIG[sourceChain];
     const dst = getConfigByWalletChain(destinationChain as WalletChain);
     const value = parseBalance(String(amount));
@@ -21,7 +21,7 @@ function makeBurnIntent(sourceChain: Chain, destinationChain: Chain, amount: num
             sourceToken: src.usdc,
             destinationToken: dst.usdc,
             sourceDepositor: DEPOSITOR_ADDRESS,
-            destinationRecipient: RECIPIENT_ADDRESS,
+            destinationRecipient: recipientAddress,
             sourceSigner: DEPOSITOR_ADDRESS,
             destinationCaller: addressToBytes32(
                 "0x0000000000000000000000000000000000000000",

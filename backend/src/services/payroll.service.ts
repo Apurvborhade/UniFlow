@@ -18,33 +18,10 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
     console.log("Selected chains:", selectedChains);
     let unifiedBalanceMapping: Record<string, string> = {};
 
-    const amount = 1; // Amount per employee per chain
+    const amount = 1; 
 
     for (const chain of selectedChains) {
-        //     console.log(`Processing chain: ${chain}`);
         const config = CHAIN_CONFIG[chain];
-        //     console.log(`Chain config retrieved for ${chain}`);
-
-        //     const burnIntent = makeBurnIntent(chain,amount);
-        //     console.log(`Burn intent created for ${chain}:`, burnIntent);
-
-        //     const typedData = burnIntentTypedData(burnIntent, domain);
-        //     console.log(`Typed data generated for ${chain}`);
-
-        //     console.log(`Signing typed data for wallet: ${config.walletId}`);
-        //     const sigResp = await circleDeveloperSdkClient.signTypedData({
-        //         walletId: config.walletId,
-        //         data: stringifyTypedData(typedData),
-        //     });
-        //     console.log(`Signature received for ${chain}:`, sigResp.data?.signature);
-
-        //     requests.push({
-        //         burnIntent: typedData.message,
-        //         signature: sigResp.data?.signature,
-        //     });
-
-        //     burnIntentsForTotal.push(burnIntent);
-        //     console.log(`Chain ${chain} processing complete`);
         unifiedBalanceMapping = await getUnifiedAvailableBalanceOfWallet(circleDeveloperSdkClient, config.walletId!);
     }
 
@@ -72,8 +49,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
                 const employeeSalary = employee.salary || amount;
 
                 if (availableBalance >= employeeSalary && !burnIntentCreated) {
-
-                    const burnIntent = makeBurnIntent(chain, employee.preferredChain.toUpperCase(), employeeSalary);
+                    const burnIntent = makeBurnIntent(chain, employee.preferredChain.toUpperCase(), employee.walletAddress,employeeSalary);
                     const typedData = burnIntentTypedData(burnIntent, domain);
 
                     const sigResp = await circleDeveloperSdkClient.signTypedData({

@@ -41,12 +41,11 @@ async function depositToGateway(chains: string[] | undefined) {
 
         console.log(`\n--- ${config.chainName} ---`);
 
-        // Approve USDC for the Gateway Wallet to transfer USDC from your address
         console.log(
             `Approving ${DEPOSIT_AMOUNT_USDC} USDC for spender ${GATEWAY_WALLET_ADDRESS}`,
         );
 
-        // await showUnifiedAvailableBalance(client, WALLET_ID!);
+
         const balance = await client.getWalletTokenBalance({ id: WALLET_ID! });
 
         console.log(`${config.chainName} : `, balance.data?.tokenBalances);
