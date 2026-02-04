@@ -1,6 +1,7 @@
 import express from 'express';
 
-import { runPayroll } from '../controller/payroll.controller.js';
+import { getUnifiedBalance, runPayroll } from '../controller/payroll.controller.js';
+
 const app = express();
 
 
@@ -16,5 +17,8 @@ app.post('/run',runPayroll);
 app.get('/status',(req, res) => {
   res.send('Payroll status retrieved successfully');
 });
+
+// Get Unified Balance
+app.get('/balance', getUnifiedBalance);
 
 export default app;

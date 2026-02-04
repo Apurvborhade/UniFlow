@@ -65,14 +65,16 @@ export async function waitForTxCompletion(
       console.log(`${label} final state: ${state}`);
 
       if (state !== "COMPLETE" && state !== "CONFIRMED") {
+        const errorDetails = data.transaction?.errorDetails || data.transaction?.errorReason || "Unknown error";
         throw new Error(
-          `${label} did not complete successfully (state=${state})`,
+          `${label} did not complete successfully (state=${state}, error=${errorDetails})`,
         );
       }
       return data.transaction;
     }
     await new Promise((resolve) => setTimeout(resolve, 3000));
   }
+  
 }
 
 // Parse decimal to base units: "10.5" → 10500000n

@@ -83,6 +83,8 @@ async function depositToGateway(chains: string[] | undefined) {
         const depositTxId = depositTx.data?.id;
         if (!depositTxId) throw new Error("Failed to create deposit transaction");
 
+        const txInfo = await client.getTransaction({ id: depositTxId });
+        console.log("Deposit Tx Info: ", txInfo.data)
         await showUnifiedAvailableBalance(client, WALLET_ID!);
         await waitForTxCompletion(client, depositTxId, "Gateway deposit");
     }
@@ -177,7 +179,7 @@ async function getUnifiedAvailableBalanceOfWallet(client: any, walletId: string)
             .padStart(6, "0")}`;
         balancesByChain[chain] = formattedAmount;
     }
-    
+
     return balancesByChain;
 
 }
@@ -193,4 +195,4 @@ async function getBalance() {
 
 }
 
-export { getBalance, depositToGateway, showUnifiedAvailableBalance,getUnifiedAvailableBalanceOfWallet };
+export { getBalance, depositToGateway, showUnifiedAvailableBalance, getUnifiedAvailableBalanceOfWallet };
