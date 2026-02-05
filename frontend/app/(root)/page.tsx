@@ -1,7 +1,13 @@
 "use client";
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Dhurjati } from "next/font/google";
+
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  animate,
+} from "framer-motion";
+
 import { useEffect, useState } from "react";
 
 const Dashboard = () => {
@@ -19,7 +25,6 @@ const Dashboard = () => {
       ease: "easeOut",
       onComplete: () => setCountDone(true),
     });
-    
 
     return controls.stop;
   }, []);
@@ -106,13 +111,14 @@ const Dashboard = () => {
 
             <div className="bg-white border  flex-1   h-full  border-gray-700 rounded-xl p-6">
               <h3 className="text-black font-semibold mb-4">Current APY</h3>
-                  <motion.span
+              <motion.span
                 initial={{ opacity: 0, y: "30%" }}
-                animate={{ opacity: 1, y: "0%" }}
+                whileInView={{ opacity: 1, y: "0%" }}
+                viewport={{ once: true, amount: 1 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="block"
               >
-              <p className="text-3xl font-bold text-black">8.5%</p>
+                <p className="text-3xl font-bold text-black">8.5%</p>
               </motion.span>
             </div>
           </div>
