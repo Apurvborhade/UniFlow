@@ -33,7 +33,7 @@ async function runScheduledPayrolls() {
 export function startScheduler() {
     console.log("⏱️ Payroll scheduler started");
 
-    cron.schedule('* * * * *', runScheduledPayrolls);
+    cron.schedule('0 18 * * 5', runScheduledPayrolls);
 }
 
 
