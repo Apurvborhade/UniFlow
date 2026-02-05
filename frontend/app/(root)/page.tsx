@@ -1,12 +1,7 @@
 "use client";
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
 
-import {
-  motion,
-  useMotionValue,
-  useTransform,
-  animate,
-} from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
 import { useEffect, useState } from "react";
 
@@ -40,7 +35,7 @@ const Dashboard = () => {
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.6 }}
               className="text-5xl font-extrabold text-black"
             >
               {formattedInflow}
@@ -110,7 +105,7 @@ const Dashboard = () => {
             </div>
 
             <div className="bg-white border  flex-1   h-full  border-gray-700 rounded-xl p-6">
-              <h3 className="text-black font-semibold mb-4">Current APY</h3>
+              <h3 className="text-black font-bold mb-4">Current APY</h3>
               <motion.span
                 initial={{ opacity: 0, y: "30%" }}
                 whileInView={{ opacity: 1, y: "0%" }}
@@ -122,6 +117,29 @@ const Dashboard = () => {
               </motion.span>
             </div>
           </div>
+        </div>
+        {/* Deploy to Yield Section */}
+        <div className="grid w-full grid-cols-3 gap-6">
+          <div className="bg-white col-span-2 border border-gray-700 rounded-xl p-6">
+            <h3 className="text-lg font-bold text-black mb-2">
+              Deploy to Yeild
+            </h3>
+            <p className="text-gray-600 text-sm mb-6">
+              Earn returns on idle funds with optimized strategies
+            </p>
+            <motion.button
+              whileHover={{ y: -1, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => alert("Deploying capital...")}
+              transition={{ ease: "easeOut", duration: 0.2 }}
+              className="group cursor-pointer relative w-full overflow-hidden rounded-lg bg-black py-3 font-semibold text-white"
+            >
+              <span className="relative z-10">Deploy capital</span>
+            </motion.button>
+          </div>
+
+          {/* Coins Flying Circle */}
+          <div className="bg-white border border-gray-700 rounded-xl p-6 flex items-center justify-center"></div>
         </div>
       </section>
     </div>
