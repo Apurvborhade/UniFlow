@@ -1,32 +1,27 @@
 "use client";
-import { motion } from "framer-motion"
-import { useState } from "react"
+import { motion } from "framer-motion";
+import { useState } from "react";
 import Link from "next/link";
 
-
-
-const items = ["Treasury","Payments","payrolls"];
+const items = ["Treasury", "Payments", "payrolls"];
 
 export default function Navbar() {
-  const [hovered, setHovered] = useState<number | null>(null)
- 
-
-
-
+  const [hovered, setHovered] = useState<number | null>(null);
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-white border-b border-none z-50">
-      <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
+    
+      <div className="max-w-7xl  mx-auto px-5 py-4 flex items-center justify-between">
         <Link href="/" className="text-6xl font-bold text-gray-900">
           Uniflow
         </Link>
 
-        <nav className="flex gap-2 rounded-full bg-white p-1 relative" 
-      
-        onMouseLeave={()=>{
-          setHovered(null)
-        
-          }}>
+        <nav
+          className="flex gap-2 rounded-full bg-white p-1 relative"
+          
+          onMouseLeave={() => {
+            setHovered(null);
+          }}
+        >
           {items.map((item, i) => (
             <button
               key={item}
@@ -41,8 +36,6 @@ export default function Navbar() {
                 />
               )}
               <span className="relative z-10">{item}</span>
-            
-
             </button>
           ))}
         </nav>
@@ -52,6 +45,6 @@ export default function Navbar() {
           <span className="absolute inset-0 scale-0 rounded-full bg-white transition-transform duration-700 ease-out group-hover:scale-[4]" />
         </button>
       </div>
-    </div>
+    
   );
 }
