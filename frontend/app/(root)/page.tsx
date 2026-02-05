@@ -5,7 +5,7 @@ import { Dhurjati } from "next/font/google";
 import { useEffect, useState } from "react";
 
 const Dashboard = () => {
-  const inflow = useMotionValue(0);
+  const inflow = useMotionValue(10000);
   const [countDone, setCountDone] = useState(false);
 
   const formattedInflow = useTransform(
@@ -14,11 +14,12 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    const controls = animate(inflow, 44000, {
-      duration: 1.2,
+    const controls = animate(inflow, 657000, {
+      duration: 0.6,
       ease: "easeOut",
       onComplete: () => setCountDone(true),
     });
+    
 
     return controls.stop;
   }, []);
@@ -31,7 +32,15 @@ const Dashboard = () => {
             Total Treasury
           </h2>
           <div className="mb-6">
-            <p className="text-5xl font-extrabold text-black">$657,500</p>
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="text-5xl font-extrabold text-black"
+            >
+              {formattedInflow}
+            </motion.p>
+
             <p className="text-gray-600 text-[17px] mt-1">USDC Balance</p>
           </div>
           <hr className="my-6 border-b-gray-400" />
@@ -40,7 +49,14 @@ const Dashboard = () => {
               <p className="text-gray-600 text-[17px] mb-2">
                 Available for Deployment
               </p>
-              <p className="text-2xl font-bold text-black">$125,500</p>
+              <motion.span
+                initial={{ opacity: 0, y: "30%" }}
+                animate={{ opacity: 1, y: "0%" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="block"
+              >
+                <p className="text-2xl font-bold text-black">$125,500</p>
+              </motion.span>
             </div>
             <div className="text-right">
               <p className="text-gray-600 text-[17px] mb-2">
@@ -66,14 +82,14 @@ const Dashboard = () => {
               <h3 className="text-black text-lg font-semibold mb-4">
                 Monthly inflow
               </h3>
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="text-3xl font-bold text-black"
+              <motion.span
+                initial={{ opacity: 0, y: "30%" }}
+                animate={{ opacity: 1, y: "0%" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="block"
               >
-                {formattedInflow}
-              </motion.p>
+                <p className="text-3xl font-extrabold text-black">$44,000</p>
+              </motion.span>
               {countDone && (
                 <motion.span
                   initial={{ opacity: 0, y: "30%" }}
@@ -90,7 +106,14 @@ const Dashboard = () => {
 
             <div className="bg-white border  flex-1   h-full  border-gray-700 rounded-xl p-6">
               <h3 className="text-black font-semibold mb-4">Current APY</h3>
-              <p className="text-3xl font-bold text-gray-900">8.5%</p>
+                  <motion.span
+                initial={{ opacity: 0, y: "30%" }}
+                animate={{ opacity: 1, y: "0%" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="block"
+              >
+              <p className="text-3xl font-bold text-black">8.5%</p>
+              </motion.span>
             </div>
           </div>
         </div>
