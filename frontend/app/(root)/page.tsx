@@ -4,6 +4,9 @@ import BalanceTrendsChart from "@/components/BalanceTrendsChart";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
 import { useEffect, useState } from "react";
+const TOTAL_TREASURY = 657000;
+const APY = 0.085;
+const projectedMonthly = Math.round((TOTAL_TREASURY * APY) / 12);
 
 const Dashboard = () => {
   const inflow = useMotionValue(10000);
@@ -15,7 +18,7 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    const controls = animate(inflow, 657000, {
+    const controls = animate(inflow, TOTAL_TREASURY, {
       duration: 0.6,
       ease: "easeOut",
       onComplete: () => setCountDone(true),
@@ -113,7 +116,7 @@ const Dashboard = () => {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="block"
               >
-                <p className="text-3xl font-bold text-black">8.5%</p>
+                <p className="text-3xl font-bold text-black">{APY * 100}%</p>
               </motion.span>
             </div>
           </div>
@@ -132,14 +135,41 @@ const Dashboard = () => {
               whileTap={{ scale: 0.97 }}
               onClick={() => alert("Deploying capital...")}
               transition={{ ease: "easeOut", duration: 0.2 }}
-              className="group cursor-pointer relative w-full overflow-hidden rounded-lg bg-black py-3 font-semibold text-white"
+              className="group  mt-7 cursor-pointer relative w-full overflow-hidden rounded-lg bg-black py-3 font-semibold text-white"
             >
               <span className="relative z-10">Deploy capital</span>
             </motion.button>
           </div>
 
-          {/* Coins Flying Circle */}
-          <div className="bg-white border border-gray-700 rounded-xl p-6 flex items-center justify-center"></div>
+          <div className="bg-white border border-gray-700 rounded-xl p-6 flex flex-col justify-between">
+            <h3 className="text-lg font-semibold text-black">
+              Projected Yield
+            </h3>
+
+            <motion.span
+              initial={{ opacity: 0, y: "30%" }}
+              animate={{ opacity: 1, y: "0%" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="block text-3xl font-bold text-blacktext-3xl text-black"
+            >
+              <p className="text-3xl font-bold text-black">
+                ${projectedMonthly.toLocaleString()}
+              </p>
+            </motion.span>
+
+            <p className="text-gray-600 text-sm mt-1">
+              Estimated monthly earnings
+            </p>
+
+            <div className="mt-6 flex items-center justify-between text-sm">
+              <span className="text-gray-500">Current APY</span>
+              <span className="font-semibold text-black">8.5%</span>
+            </div>
+
+            <div className="mt-2 text-xs text-gray-500">
+              Projection based on current treasury balance
+            </div>
+          </div>
         </div>
       </section>
     </div>
