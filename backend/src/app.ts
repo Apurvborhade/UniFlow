@@ -7,7 +7,7 @@ import { errorHandler } from './middleware/errorHandler.middleware.js';
 import employeeRoutes from './routes/employees.routes.js';
 import payrollRoutes from './routes/payroll.routes.js';
 import treasuryRoutes from './routes/treasury.routes.js';
-
+import payrollSchedule from './routes/payrollSchedule.routes.js'
 // Scheduler
 import { startScheduler } from './utils/scheduler.js';
 
@@ -30,6 +30,10 @@ app.use('/api/employees', employeeRoutes);
 
 // Treasury Wallet routes
 app.use('/api/treasury', treasuryRoutes);
+
+//Payroll Scheduler
+app.use('/api/scheduler/payroll', payrollSchedule);
+
 
 // Scheduler
 startScheduler();
