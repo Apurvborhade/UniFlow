@@ -52,3 +52,19 @@ model Employee {
 model Transaction {
   id String @id
 }
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+model PayrollSchedule {
+  id        String    @id @default(uuid())
+  frequency Frequency
+  runAt     DateTime
+  isActive  Boolean   @default(true)
+  lastRunAt DateTime?
+  nextRunAt DateTime?
+}
