@@ -3,17 +3,17 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2023",
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "generated/**/*"
   ],
   "exclude": [
-    "node_modules",
-    "generated"
+    "node_modules"
   ]
 }

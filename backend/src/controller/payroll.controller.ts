@@ -15,7 +15,7 @@ async function runPayroll(req: any, res: any, next: any) {
         const employees = await getEmployees() as any[];
 
         const totalSalary = employees?.reduce((acc: any, employee) => acc + employee.salaryAmount.toNumber(), 0.0);
-
+        
         const balance = await getBalance();
 
         const usdcAmount = balance.data?.tokenBalances?.find((token: any) => token.token.symbol === 'USDC')?.amount || 0;

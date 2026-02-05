@@ -95,7 +95,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
                     });
 
                     employeeBurnIntents.push(burnIntent);
-                    console.log(`Created burn intent for ${employee.id} on ${chain}: ${employeeSalary}`);
+                    console.log(`Created burn intent for ${employee.id} on ${chain}: ${distribution[chainName]} USDC`);
 
                 }
             }

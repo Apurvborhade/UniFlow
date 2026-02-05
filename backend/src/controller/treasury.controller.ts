@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { getEmployees } from '../services/employees.service.js';
 import { depositToGateway, getBalance } from '../services/treasury.service.js';
 import { getDeveloperControlledWalletsClient } from '../utils/circle-utils.js'
 
@@ -57,7 +58,11 @@ async function getTreasuryWallets(req: any, res: any, next: any) {
 async function depositToGatewayController(req: any, res: any, next: any) {
     try {
         const { chains } = req.body;
-        await depositToGateway(chains);
+         const employees = await getEmployees() as any[];
+
+        const totalSalary = employees?.reduce((acc: any, employee) => acc + employee.salaryAmount.toNumber(), 0.0);
+        
+        await depositToGateway(chains,totalSalary);
 
         res.send({ message: 'Deposit to Gateway successful' });
     } catch (error) {
