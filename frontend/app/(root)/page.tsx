@@ -1,4 +1,6 @@
+"use client";
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
+import { motion } from "framer-motion";
 
 const Dashboard = () => {
   return (
@@ -40,12 +42,21 @@ const Dashboard = () => {
 
           {/* Right Column Stats */}
           <div className="flex flex-col justify-between gap-6">
-            <div className="bg-white border flex-2 h-full border-gray-700 rounded-xl p-6">
-              <h3 className="text-black text-lg font-semibold mb-4">Monthly inflow</h3>
+            <div className="bg-white border overflow-hidden flex-2 h-full border-gray-700 rounded-xl p-6">
+              <h3 className="text-black text-lg font-semibold mb-4">
+                Monthly inflow
+              </h3>
               <p className="text-3xl font-bold text-black">$44,000</p>
-              <p className="text-[#26FF00] pt-3 text-[20px]  font-bold mt-2">
-                ↑ 12% from last month
-              </p>
+              <motion.span
+                initial={{ opacity: 0, y: "30%" }}
+                animate={{ opacity: 1, y: "0%" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="block"
+              >
+                <p className="text-[#26FF00] pt-3 text-[20px]  font-bold mt-2">
+                  ↑ 12% from last month
+                </p>
+              </motion.span>
             </div>
 
             <div className="bg-white border  flex-1   h-full  border-gray-700 rounded-xl p-6">
