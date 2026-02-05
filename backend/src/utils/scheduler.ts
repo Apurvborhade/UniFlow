@@ -1,6 +1,6 @@
 import cron from 'node-cron'
 import { prisma } from '../lib/prisma.js';
-import { runPayroll } from '../controller/payroll.controller.js';
+
 import fetch from 'node-fetch'
 
 
@@ -8,11 +8,16 @@ async function runScheduledPayrolls() {
     const schedules = await prisma.payrollSchedule.findMany({
         where: { isActive: true },
     });
+    if (!schedules.length) {
+        console.log("No Schedule Found");
+        return;
+    };
 
     for (const schedule of schedules) {
+
         if (!shouldRun(schedule) && !schedule.isActive) continue;
 
-        await fetch(`http://localhost:${process.env.PORT}/payroll/run`, {})
+        await fetch(`http://localhost:${process.env.PORT}/api/payroll/run`, {})
 
         await prisma.payrollSchedule.update({
             where: { id: schedule.id },
@@ -22,11 +27,15 @@ async function runScheduledPayrolls() {
             },
         });
 
-        
+
     }
 }
+export function startScheduler() {
+    console.log("⏱️ Payroll scheduler started");
 
-cron.schedule('* * * * *', runScheduledPayrolls);
+    cron.schedule('* * * * *', runScheduledPayrolls);
+}
+
 
 function shouldRun(schedule: any): boolean {
     const now = new Date();

@@ -8,6 +8,8 @@ import employeeRoutes from './routes/employees.routes.js';
 import payrollRoutes from './routes/payroll.routes.js';
 import treasuryRoutes from './routes/treasury.routes.js';
 
+// Scheduler
+import { startScheduler } from './utils/scheduler.js';
 
 const app = express();
 
@@ -28,6 +30,9 @@ app.use('/api/employees', employeeRoutes);
 
 // Treasury Wallet routes
 app.use('/api/treasury', treasuryRoutes);
+
+// Scheduler
+startScheduler();
 
 // Middleware for error handling
 app.use(errorHandler);
