@@ -1,8 +1,26 @@
 "use client";
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { Dhurjati } from "next/font/google";
+import { useEffect } from "react";
 
 const Dashboard = () => {
+  const inflow = useMotionValue(0);
+
+  const formattedInflow = useTransform(
+    inflow,
+    (value) => `$${Math.round(value).toLocaleString()}`,
+  );
+
+  useEffect(() => {
+    const controls = animate(inflow, 44000, {
+      duration: 1.2,
+      ease: "easeOut",
+    });
+
+    return controls.stop;
+  }, []);
+
   return (
     <div>
       <section className="max-w-5xl  mx-auto px-5 py-4 flex flex-col items-center justify-between">
@@ -46,7 +64,10 @@ const Dashboard = () => {
               <h3 className="text-black text-lg font-semibold mb-4">
                 Monthly inflow
               </h3>
-              <p className="text-3xl font-bold text-black">$44,000</p>
+              <motion.p initial={{ opacity: 0 ,y:8}} animate={{ opacity: 1, y: 0 }} transition={{duration:0.3}} className="text-3xl font-bold text-black">
+                {formattedInflow}
+              </motion.p>
+
               <motion.span
                 initial={{ opacity: 0, y: "30%" }}
                 animate={{ opacity: 1, y: "0%" }}
