@@ -90,6 +90,7 @@ const Dashboard = () => {
 
             <div className="bg-white border  flex-1   h-full  border-gray-700 rounded-xl p-6">
               <h3 className="text-black font-semibold mb-4">Current APY</h3>
+              <p className="text-3xl font-bold text-gray-900">8.5%</p>
             </div>
           </div>
         </div>
