@@ -1,3 +1,5 @@
+import BalanceTrendsChart from "@/components/BalanceTrendsChart";
+
 const Dashboard = () => {
   return (
     <div>
@@ -27,12 +29,13 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="w-full grid grid-cols-3 gap-6 mb-8">
+        <div className="w-full grid grid-cols-3 gap-5 mb-8">
           {/* Balance Trends Chart */}
           <div className="col-span-2 bg-white border border-gray-700 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-black mb-4">
               Balance trends
             </h3>
+            <BalanceTrendsChart />
           </div>
 
           {/* Right Column Stats */}
