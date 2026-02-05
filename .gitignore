@@ -7,7 +7,7 @@ venv/
 env/
 backend/tmp
 backend/tmp/*
-
+backend/src/generated/
 # IDE
 .vscode/
 .idea/
