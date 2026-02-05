@@ -1,5 +1,5 @@
 import express from 'express';
-
+import cors from 'cors'
 // Middleware imports
 import { errorHandler } from './middleware/errorHandler.middleware.js';
 
@@ -14,7 +14,9 @@ import { startScheduler } from './utils/scheduler.js';
 const app = express();
 
 app.use(express.json());
-
+app.use(cors({
+    origin: '*',
+}));
 
 
 // System Health
