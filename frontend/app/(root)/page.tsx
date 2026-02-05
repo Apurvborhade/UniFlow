@@ -1,5 +1,6 @@
 "use client";
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
+import { Button } from "@/components/ui/button";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
@@ -31,20 +32,27 @@ const Dashboard = () => {
     <div>
       <section className="max-w-5xl  mx-auto px-5 py-4 flex flex-col items-center justify-between">
         <div className="bg-white w-full border border-black rounded-xl p-6 mb-8 pt-6 pb-10">
-          <h2 className="text-black font-medium text-lg mb-4">
-            Total Treasury
-          </h2>
-          <div className="mb-6">
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-5xl font-extrabold text-black"
-            >
-              {formattedInflow}
-            </motion.p>
+          <div className="mb-6 flex justify-between items-start">
+            <div>
+              <h2 className="text-black font-medium text-lg mb-4">
+                Total Treasury
+              </h2>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="text-5xl font-extrabold text-black"
+              >
+                {formattedInflow}
+              </motion.p>
 
-            <p className="text-gray-600 text-[17px] mt-1">USDC Balance</p>
+              <p className="text-gray-600 text-[17px] mt-1">USDC Balance</p>
+            </div>
+            <div>
+              <Button className="mt-2 border-none text-white hover:scale-105 cursor-pointer hover:bg-blue-700">
+                <span className="text-xl font-bold">+</span> Deposit Funds
+              </Button>
+            </div>
           </div>
           <hr className="my-6 border-b-gray-400" />
           <div className="grid grid-cols-2 gap-8">
