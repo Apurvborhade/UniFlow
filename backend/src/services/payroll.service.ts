@@ -5,7 +5,7 @@ import { parseSelectedChains, waitForTxCompletion } from "../utils/arc/helper.js
 import { CHAIN_CONFIG } from "../utils/arc/transferChainConfig.js";
 import { burnIntentTypedData, formatUnits, makeBurnIntent, stringifyTypedData } from "../utils/arc/transferHelper.js";
 import { DEPOSITOR_ADDRESS, DESTINATION_CHAIN, GATEWAY_MINTER_ADDRESS } from "../utils/arc/transferConstants.js";
-import { getUnifiedAvailableBalanceOfWallet, showUnifiedAvailableBalance } from "./treasury.service.js";
+import { getUnifiedAvailableBalanceOfWallet } from "./treasury.service.js";
 
 const domain = { name: "GatewayWallet", version: "1" };
 
@@ -18,7 +18,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
     console.log("Selected chains:", selectedChains);
     let unifiedBalanceMapping: Record<string, string> = {};
 
-    const amount = 1; 
+    const amount = 1;
 
     for (const chain of selectedChains) {
         const config = CHAIN_CONFIG[chain];
@@ -49,7 +49,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
                 const employeeSalary = employee.salary || amount;
 
                 if (availableBalance >= employeeSalary && !burnIntentCreated) {
-                    const burnIntent = makeBurnIntent(chain, employee.preferredChain.toUpperCase(), employee.walletAddress,employeeSalary);
+                    const burnIntent = makeBurnIntent(chain, employee.preferredChain.toUpperCase(), employee.walletAddress, employeeSalary);
                     const typedData = burnIntentTypedData(burnIntent, domain);
 
                     const sigResp = await circleDeveloperSdkClient.signTypedData({
@@ -110,6 +110,21 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
                 id: txId
             })
             console.log("TX Info: ", txInfo.data)
+
+            await prisma.transaction.create({
+                data: {
+                    id: txId
+                }
+            });
+
+
+            await prisma.payroll.create({
+                data: {
+                    employeeId: employee.id,
+                    amount: employee.salary,
+                    transactionId: txId,
+                }
+            });
             await waitForTxCompletion(circleDeveloperSdkClient, txId, "USDC mint");
 
             const totalMintBaseUnits = employeeBurnIntents.reduce(
