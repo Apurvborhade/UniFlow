@@ -6,6 +6,7 @@ import { CHAIN_CONFIG } from "../utils/arc/transferChainConfig.js";
 import { burnIntentTypedData, formatUnits, makeBurnIntent, stringifyTypedData } from "../utils/arc/transferHelper.js";
 import { DEPOSITOR_ADDRESS, DESTINATION_CHAIN, GATEWAY_MINTER_ADDRESS } from "../utils/arc/transferConstants.js";
 import { getUnifiedAvailableBalanceOfWallet } from "./treasury.service.js";
+import { AppError } from "../utils/AppError.js";
 
 const domain = { name: "GatewayWallet", version: "1" };
 
@@ -13,10 +14,12 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
     const requests: any[] = [];
     const burnIntentsForTotal: any[] = [];
     console.log("Parsing selected chains...");
-    const chains = ["ethereum", "arc"];
+    const chains = ["ethereum", "arc", "base"];
     const selectedChains = await parseSelectedChains(chains);
     console.log("Selected chains:", selectedChains);
     let unifiedBalanceMapping: Record<string, string> = {};
+
+    const distribution: Record<string, number> = {}
 
     const amount = 1;
 
@@ -25,7 +28,16 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
         unifiedBalanceMapping = await getUnifiedAvailableBalanceOfWallet(circleDeveloperSdkClient, config.walletId!);
     }
 
+    const numericBalances = Object.fromEntries(
+        Object.entries(unifiedBalanceMapping).map(([chain, balance]) => [chain, Number(balance)])
+    );
+    console.log("numeric Balance: ", numericBalances)
+    const totalBalance = Object.values(numericBalances).reduce((sum, balance) => sum + balance, 0);
+
+
     console.log(`Processing ${employees.length} employees...`);
+
+
     for (const employee of employees) {
         console.log(employee.blockchain)
         try {
@@ -34,7 +46,25 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
             // Create burn intents for chains with available balance
             const employeeRequests: any[] = [];
             const employeeBurnIntents: any[] = [];
-            let burnIntentCreated = false; // Flag to track if a burn intent has been created
+
+
+            console.log(`Total available balance across all chains: ${totalBalance}`);
+
+            if (totalBalance < employee.salary) {
+                throw new AppError(`Insufficient funds to process payroll for employee ${employee.id}. Required: ${employee.salaryAmount}, Available: ${totalBalance}`, 400);
+            }
+            for (const [chain, balance] of Object.entries(numericBalances)) {
+                if (balance === 0) {
+                    distribution[chain] = 0
+                    continue
+                }
+
+                distribution[chain] = Number(
+                    ((balance / totalBalance) * employee.salaryAmount.toNumber()).toFixed(6)
+                )
+            }
+
+            console.log("Distribution: ", distribution)
 
             for (const chain of selectedChains) {
                 const config = CHAIN_CONFIG[chain];
@@ -46,10 +76,12 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
 
 
                 const availableBalance = parseFloat(unifiedBalanceMapping[chainName]);
-                const employeeSalary = employee.salary || amount;
 
-                if (availableBalance >= employeeSalary && !burnIntentCreated) {
-                    const burnIntent = makeBurnIntent(chain, employee.preferredChain.toUpperCase(), employee.walletAddress, employeeSalary);
+
+                const employeeSalary = employee.salaryAmount.toNumber() || amount;
+
+                if (availableBalance >= employeeSalary) {
+                    const burnIntent = makeBurnIntent(chain, employee.preferredChain.toUpperCase(), employee.walletAddress, distribution[chainName]);
                     const typedData = burnIntentTypedData(burnIntent, domain);
 
                     const sigResp = await circleDeveloperSdkClient.signTypedData({
@@ -64,7 +96,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
 
                     employeeBurnIntents.push(burnIntent);
                     console.log(`Created burn intent for ${employee.id} on ${chain}: ${employeeSalary}`);
-                    burnIntentCreated = true; // Set flag to true after creating a burn intent
+
                 }
             }
 
@@ -121,7 +153,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
             await prisma.payroll.create({
                 data: {
                     employeeId: employee.id,
-                    amount: employee.salary,
+                    amount: employee.salaryAmount.toNumber(),
                     transactionId: txId,
                 }
             });
