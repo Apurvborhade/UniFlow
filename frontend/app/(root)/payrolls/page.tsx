@@ -9,6 +9,10 @@ export default function PayrollsPage() {
     distributionRate: "100%",
     nextCycle: "in 5 days",
   };
+  const recipients = [
+    { status: "Approved", count: 4 },
+    { status: "Pending", count: 1 },
+  ];
   return (
     <main className="max-w-5xl mx-auto px-5 py-4 flex flex-col items-center">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-0 sm:mt-0">
@@ -61,10 +65,33 @@ export default function PayrollsPage() {
           <div className="grid grid-cols-1 gap-4 sm:gap-6 md:col-span-3">
             {/* Top two cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white border border-black rounded-2xl p-6 sm:p-8">
-                <h2 className="text-lg font-bold text-gray-900 mb-2">
+              <div className="bg-white border p-6 mb-8 pt-4 pb-10 border-black rounded-2xl  sm:p-8">
+                <h3 className="text-black text-lg  font-semibold mb-3 mt-0 pt-0">
                   Recipients
-                </h2>
+                </h3>
+                <motion.span
+                  initial={{ opacity: 0, y: "30%" }}
+                  animate={{ opacity: 1, y: "0%" }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="block"
+                >
+                  <p className="text-3xl sm:text-4xl font-bold text-black mb-4">
+                    {recipients.reduce((sum, r) => sum + r.count, 0)}
+                  </p>
+                </motion.span>
+                <div className="space-y-3 text-sm">
+                  {recipients.map((r, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between text-gray-600"
+                    >
+                      <span>{r.status} :</span>
+                      <span className="text-black font-semibold">
+                        {r.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="bg-white border border-black rounded-2xl p-6 sm:p-8">
