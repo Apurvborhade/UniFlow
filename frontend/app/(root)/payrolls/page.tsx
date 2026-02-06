@@ -2,16 +2,20 @@
 import CSVUpload from "@/components/CSVUpload";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { set } from "mongoose";
 import { useEffect, useState } from "react";
 
 export default function PayrollsPage() {
   const [uploadedData, setUploadedData] = useState<ParsedPayrollData[] | null>(null);
   const [employeeCount, setEmployeeCount] = useState<number | null>(null);
+  const [employees, setEmployees] = useState<any[]>([]);
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         const employee = await axios.get("https://uniflow-backend.apurvaborhade.dev/api/employees");
         const empoyeeNumber = employee.data.data;
+        setEmployees(empoyeeNumber);
+        console.log("Employee data:", empoyeeNumber);
         const empoyeeNumberLength = empoyeeNumber.length;
         setEmployeeCount(empoyeeNumberLength);
         console.log("Number of employees:", empoyeeNumberLength);
@@ -21,6 +25,7 @@ export default function PayrollsPage() {
     };
     fetchEmployees();
   }, []);
+
 
   const payrollData = {
     totalProcessed: "$25,000",
@@ -39,29 +44,8 @@ export default function PayrollsPage() {
     processingFee: "$250",
     netAmount: "$24,750",
   };
-  const payrollBatch = [
-    {
-      recipient: "Alice Johnson",
-      wallet: "0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...",
-      amount: "$15000",
-      chain: "Ethereum",
-      status: "Confirmed",
-    },
-    {
-      recipient: "Aave Protocol",
-      wallet: "0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...",
-      amount: "$2500",
-      chain: "Ethereum",
-      status: "Confirmed",
-    },
-    {
-      recipient: "Aave Protocol",
-      wallet: "0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...",
-      amount: "$2500",
-      chain: "Ethereum",
-      status: "Confirmed",
-    },
-  ];
+  
+  
 
   return (
     <main className="max-w-5xl mx-auto px-5 py-4 flex flex-col items-center">
@@ -255,19 +239,19 @@ export default function PayrollsPage() {
               </tr>
             </thead>
             <tbody>
-              {payrollBatch.map((batch, idx) => (
+              {employees.map((batch, idx) => (
                 <tr
                   key={idx}
                   className="border-b border-gray-200 hover:bg-gray-50"
                 >
                   <td className="py-4 text-sm text-gray-900">
-                    {batch.recipient}
+                    {batch.name}
                   </td>
                   <td className="py-4 text-sm text-gray-600 font-mono">
-                    {batch.wallet}
+                    {batch.walletAddress}
                   </td>
-                  <td className="py-4 text-sm text-gray-900">{batch.amount}</td>
-                  <td className="py-4 text-sm text-gray-600">{batch.chain}</td>
+                  <td className="py-4 text-sm text-gray-900">{batch.salaryAmount}</td>
+                  <td className="py-4 text-sm text-gray-600">{batch.preferredChain}</td>
                   <td className="py-4">
                     <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                       {batch.status}
@@ -281,7 +265,7 @@ export default function PayrollsPage() {
 
         {/* Mobile Card View */}
         <div className="sm:hidden space-y-4 mb-6">
-          {payrollBatch.map((batch, idx) => (
+          {employees.map((batch, idx) => (
             <div
               key={idx}
               className="bg-gray-50 rounded-lg p-4 border border-gray-200"
