@@ -104,6 +104,7 @@ export default function PayrollSchedulePage() {
   };
 
   const toggleScheduleActive = (id: string) => {
+    
     setSchedules(
       schedules.map((schedule) =>
         schedule.id === id
