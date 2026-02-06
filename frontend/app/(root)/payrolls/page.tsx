@@ -13,6 +13,11 @@ export default function PayrollsPage() {
     { status: "Approved", count: 4 },
     { status: "Pending", count: 1 },
   ];
+  const payrollSummary = {
+    avgPayment: "$5,000",
+    processingFee: "$250",
+    netAmount: "$24,750",
+  };
   return (
     <main className="max-w-5xl mx-auto px-5 py-4 flex flex-col items-center">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-0 sm:mt-0">
@@ -95,7 +100,7 @@ export default function PayrollsPage() {
               </div>
 
               <div className="bg-white border p-6 mb-8 pt-4 pb-10 border-black rounded-2xl sm:p-8">
-                <h3 className="text-sm text-gray-600 font-medium mb-3">
+                <h3 className=" text-black  font-semibold text-lg mb-3">
                   Status
                 </h3>
                 <p className="text-2xl sm:text-1xl font-bold text-[#FEB20D] mb-4">
@@ -116,9 +121,56 @@ export default function PayrollsPage() {
 
             {/* Payroll Summary */}
             <div className="bg-white border border-black rounded-2xl  sm:p-8">
-              <h2 className="text-lg font-bold text-gray-900 mb-2">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                 Payroll Summary
               </h2>
+              <div className="grid grid-cols-3 gap-4 sm:gap-6">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2">
+                    Avg. payment
+                  </p>
+                  <motion.span
+                    initial={{ opacity: 0, y: "30%" }}
+                    animate={{ opacity: 1, y: "0%" }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="block"
+                  >
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {payrollSummary.avgPayment}
+                    </p>
+                  </motion.span>
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2">
+                    Processing Fee
+                  </p>
+                  <motion.span
+                    initial={{ opacity: 0, y: "30%" }}
+                    animate={{ opacity: 1, y: "0%" }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="block"
+                  >
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {payrollSummary.processingFee}
+                    </p>
+                  </motion.span>
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2">
+                    Net Amount
+                  </p>
+                  <motion.span
+                    initial={{ opacity: 0, y: "30%" }}
+                    animate={{ opacity: 1, y: "0%" }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="block"
+                  >
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {payrollSummary.netAmount}
+                    </p>
+                  </motion.span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
