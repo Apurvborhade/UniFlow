@@ -14,7 +14,7 @@ import { toast } from "sonner";
 const Dashboard = () => {
   const { address } = useWallet();
 
-  const inflow = useMotionValue(10000);
+  const inflow = useMotionValue(0);
   const [countDone, setCountDone] = useState(false);
   const [totalTreasury, setTotalTreasury] = useState(0);
   const [selectedChains] = useState<string[]>(["Base Sepolia"]);
@@ -50,10 +50,14 @@ const Dashboard = () => {
     const fetchTreasury = async () => {
       try {
         const response = await axios.get(
-          "https://uniflow-backend.apurvaborhade.dev/api/treasury/balance",
+          "https://uniflow-backend.apurvaborhade.dev/api/payroll/balance",
         );
-
-        setTotalTreasury(response.data.balance);
+        const balances = response.data.balances;
+        const totalFunds = Object.values(balances)
+        .map((val: unknown) => Number(val as string) || 0) // convert each value to number safely
+        .reduce((acc, curr) => acc + curr, 0);
+        
+        setTotalTreasury(totalFunds);
       } catch (error) {
         console.error("Error fetching treasury balance:", error);
       }
@@ -64,7 +68,7 @@ const Dashboard = () => {
 
   const formattedInflow = useTransform(
     inflow,
-    (value) => `$${Math.round(value).toLocaleString()}`,
+    (value) => `${Math.round(value).toLocaleString()}`,
   );
 
   useEffect(() => {
@@ -75,7 +79,7 @@ const Dashboard = () => {
     });
 
     return controls.stop;
-  }, []);
+  }, [totalTreasury]);
 
   return (
     <div>
