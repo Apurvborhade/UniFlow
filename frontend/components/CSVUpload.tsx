@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { useRef, useState } from 'react';
-import { Upload } from 'lucide-react';
+import { useRef, useState } from "react";
+import { Upload } from "lucide-react";
+import axios from "axios";
 
 interface ParsedPayrollData {
   recipient: string;
@@ -16,6 +17,8 @@ interface CSVUploadProps {
   onDataParsed?: (data: ParsedPayrollData[]) => void;
 }
 
+
+
 export default function CSVUpload({ onDataParsed }: CSVUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -24,24 +27,17 @@ export default function CSVUpload({ onDataParsed }: CSVUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const parseCSV = (content: string): ParsedPayrollData[] => {
-    const lines = content.trim().split('\n');
+    const lines = content.trim().split("\n");
     if (lines.length < 2) {
-      throw new Error('CSV must contain header and at least one data row');
+      throw new Error("CSV must contain header and at least one data row");
     }
 
-    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
-    const requiredHeaders = [
-      'recipient',
-      'wallet',
-      'amount',
-      'chain',
-    ];
+    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const requiredHeaders = ["recipient", "wallet", "amount", "chain"];
 
     const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
     if (missingHeaders.length > 0) {
-      throw new Error(
-        `Missing required columns: ${missingHeaders.join(', ')}`
-      );
+      throw new Error(`Missing required columns: ${missingHeaders.join(", ")}`);
     }
 
     const data: ParsedPayrollData[] = [];
@@ -49,30 +45,30 @@ export default function CSVUpload({ onDataParsed }: CSVUploadProps) {
       const line = lines[i].trim();
       if (!line) continue;
 
-      const values = line.split(',').map((v) => v.trim());
-      const recipientIdx = headers.indexOf('recipient');
-      const walletIdx = headers.indexOf('wallet');
-      const amountIdx = headers.indexOf('amount');
-      const chainIdx = headers.indexOf('chain');
+      const values = line.split(",").map((v) => v.trim());
+      const recipientIdx = headers.indexOf("recipient");
+      const walletIdx = headers.indexOf("wallet");
+      const amountIdx = headers.indexOf("amount");
+      const chainIdx = headers.indexOf("chain");
 
       data.push({
-        recipient: values[recipientIdx] || '',
-        wallet: values[walletIdx] || '',
-        amount: values[amountIdx] || '',
-        chain: values[chainIdx] || '',
+        recipient: values[recipientIdx] || "",
+        wallet: values[walletIdx] || "",
+        amount: values[amountIdx] || "",
+        chain: values[chainIdx] || "",
       });
     }
 
     if (data.length === 0) {
-      throw new Error('No valid data rows found in CSV');
+      throw new Error("No valid data rows found in CSV");
     }
 
     return data;
   };
 
   const handleFile = async (file: File) => {
-    if (!file.name.endsWith('.csv')) {
-      setError('Please upload a CSV file');
+    if (!file.name.endsWith(".csv")) {
+      setError("Please upload a CSV file");
       return;
     }
 
@@ -84,10 +80,16 @@ export default function CSVUpload({ onDataParsed }: CSVUploadProps) {
       const parsedData = parseCSV(content);
       setFileName(file.name);
       onDataParsed?.(parsedData);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to parse CSV file'
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await axios.post(
+        "https://uniflow-backend.apurvaborhade.dev/api/employees/upload",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
+      console.log("Upload successful:", response.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to parse CSV file");
       setFileName(null);
     } finally {
       setIsLoading(false);
@@ -129,9 +131,9 @@ export default function CSVUpload({ onDataParsed }: CSVUploadProps) {
         onClick={() => fileInputRef.current?.click()}
         className={`border-2 border-dashed  rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all ${
           isDragging
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-        } ${isLoading ? 'opacity-60' : ''}`}
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+        } ${isLoading ? "opacity-60" : ""}`}
       >
         <input
           ref={fileInputRef}
@@ -162,9 +164,7 @@ export default function CSVUpload({ onDataParsed }: CSVUploadProps) {
                 <p className="text-lg font-semibold text-gray-900">
                   Drag and drop your CSV file here
                 </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  or click to browse
-                </p>
+                <p className="text-sm text-gray-600 mt-1">or click to browse</p>
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Required columns: Recipient, Wallet, Amount, Chain
@@ -178,7 +178,10 @@ export default function CSVUpload({ onDataParsed }: CSVUploadProps) {
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm font-semibold text-red-700">Error</p>
           <p className="text-sm text-red-600 mt-1">{error}</p>
-          <p className="text-xs text-red-500 mt-2 cursor-pointer hover:underline" onClick={() => fileInputRef.current?.click()}>
+          <p
+            className="text-xs text-red-500 mt-2 cursor-pointer hover:underline"
+            onClick={() => fileInputRef.current?.click()}
+          >
             Try uploading again
           </p>
         </div>
