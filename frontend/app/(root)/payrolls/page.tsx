@@ -1,10 +1,53 @@
 "use client";
 import CSVUpload from "@/components/CSVUpload";
+import axios from "axios";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { set } from "mongoose";
+import { useEffect, useState } from "react";
 
 export default function PayrollsPage() {
-  const [uploadedData, setUploadedData] = useState<ParsedPayrollData[] | null>(null);
+  const [uploadedData, setUploadedData] = useState<ParsedPayrollData[] | null>(
+    null,
+  );
+  const [employeeCount, setEmployeeCount] = useState<number | null>(null);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [batchdate, setBatchDate] = useState<Date | null>(null);
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const employee = await axios.get(
+          "https://uniflow-backend.apurvaborhade.dev/api/employees/",
+        );
+        const empoyeeNumber = employee.data.data;
+        setEmployees(empoyeeNumber);
+        console.log("Employee data:", empoyeeNumber);
+        const empoyeeNumberLength = empoyeeNumber.length;
+        setEmployeeCount(empoyeeNumberLength);
+        console.log("Number of employees:", empoyeeNumberLength);
+      } catch (error) {
+        console.error("Failed to fetch employees:", error);
+      }
+    };
+    fetchEmployees();
+  }, []);
+  useEffect(() => {
+    const fetchPayrollBatch = async () => {
+      try {
+        const response = await axios.get(
+          "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/list",
+        );
+        const batchData = new Date(
+          response.data.schedules[0]?.nextRunAt || null,
+        );
+        setBatchDate(batchData);
+
+        console.log("Payroll batch data:", batchData.getDate());
+      } catch (error) {
+        console.error("Failed to fetch payroll batch:", error);
+      }
+    };
+    fetchPayrollBatch();
+  }, []);
 
   const payrollData = {
     totalProcessed: "$25,000",
@@ -15,37 +58,14 @@ export default function PayrollsPage() {
     nextCycle: "in 5 days",
   };
   const recipients = [
-    { status: "Approved", count: 4 },
-    { status: "Pending", count: 1 },
+    { status: "Approved", count: employeeCount },
+    { status: "Pending", count: 0 },
   ];
   const payrollSummary = {
     avgPayment: "$5,000",
     processingFee: "$250",
     netAmount: "$24,750",
   };
-  const payrollBatch = [
-    {
-      recipient: "Alice Johnson",
-      wallet: "0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...",
-      amount: "$15000",
-      chain: "Ethereum",
-      status: "Confirmed",
-    },
-    {
-      recipient: "Aave Protocol",
-      wallet: "0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...",
-      amount: "$2500",
-      chain: "Ethereum",
-      status: "Confirmed",
-    },
-    {
-      recipient: "Aave Protocol",
-      wallet: "0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...",
-      amount: "$2500",
-      chain: "Ethereum",
-      status: "Confirmed",
-    },
-  ];
 
   return (
     <main className="max-w-5xl mx-auto px-5 py-4 flex flex-col items-center">
@@ -89,7 +109,7 @@ export default function PayrollsPage() {
               <div className="flex justify-between">
                 <span>Next Cycle</span>
                 <span className="text-gray-900 font-semibold">
-                  {payrollData.nextCycle}
+                  {batchdate ? batchdate.toLocaleDateString() : "No data"}
                 </span>
               </div>
             </div>
@@ -110,7 +130,7 @@ export default function PayrollsPage() {
                   className="block"
                 >
                   <p className="text-3xl sm:text-4xl font-bold text-black mb-4">
-                    {recipients.reduce((sum, r) => sum + r.count, 0)}
+                    {employeeCount !== null ? employeeCount : "Loading..."}
                   </p>
                 </motion.span>
                 <div className="space-y-3 text-sm">
@@ -239,19 +259,21 @@ export default function PayrollsPage() {
               </tr>
             </thead>
             <tbody>
-              {payrollBatch.map((batch, idx) => (
+              {employees.map((batch, idx) => (
                 <tr
                   key={idx}
                   className="border-b border-gray-200 hover:bg-gray-50"
                 >
-                  <td className="py-4 text-sm text-gray-900">
-                    {batch.recipient}
-                  </td>
+                  <td className="py-4 text-sm text-gray-900">{batch.name}</td>
                   <td className="py-4 text-sm text-gray-600 font-mono">
-                    {batch.wallet}
+                    {batch.walletAddress}
                   </td>
-                  <td className="py-4 text-sm text-gray-900">{batch.amount}</td>
-                  <td className="py-4 text-sm text-gray-600">{batch.chain}</td>
+                  <td className="py-4 text-sm text-gray-900">
+                    {batch.salaryAmount}
+                  </td>
+                  <td className="py-4 text-sm text-gray-600">
+                    {batch.preferredChain}
+                  </td>
                   <td className="py-4">
                     <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                       {batch.status}
@@ -265,7 +287,7 @@ export default function PayrollsPage() {
 
         {/* Mobile Card View */}
         <div className="sm:hidden space-y-4 mb-6">
-          {payrollBatch.map((batch, idx) => (
+          {employees.map((batch, idx) => (
             <div
               key={idx}
               className="bg-gray-50 rounded-lg p-4 border border-gray-200"
@@ -303,109 +325,108 @@ export default function PayrollsPage() {
             Approve & Execute
           </button>
         </div>
-       
       </div>
-       <div className="bg-white border w-full border-black rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-            Upload Payroll Batch
+      <div className="bg-white border w-full border-black rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+          Upload Payroll Batch
+        </h2>
+
+        <p className="text-sm text-gray-600 mb-6">
+          Upload a CSV file with employee payment details
+        </p>
+
+        <CSVUpload
+          onDataParsed={(data) => {
+            setUploadedData(data);
+            console.log("[v0] CSV data parsed:", data);
+          }}
+        />
+      </div>
+      {uploadedData && uploadedData.length > 0 && (
+        <div className="bg-white border w-full border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
+            Uploaded Payroll Data ({uploadedData.length} records)
           </h2>
-          <p className="text-sm text-gray-600 mb-6">
-            Upload a CSV file with employee payment details
-          </p>
-          <CSVUpload
-            onDataParsed={(data) => {
-              setUploadedData(data);
-              console.log("[v0] CSV data parsed:", data);
-            }}
-          />
-        </div>
-        {uploadedData && uploadedData.length > 0 && (
-          <div className="bg-white border w-full border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
-              Uploaded Payroll Data ({uploadedData.length} records)
-            </h2>
 
-            {/* Desktop Table */}
-            <div className="hidden  sm:block overflow-x-auto mb-6">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
-                      Recipient
-                    </th>
-                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
-                      Wallet
-                    </th>
-                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
-                      Amount
-                    </th>
-                    <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
-                      Chain
-                    </th>
+          {/* Desktop Table */}
+          <div className="hidden  sm:block overflow-x-auto mb-6">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
+                    Recipient
+                  </th>
+                  <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
+                    Wallet
+                  </th>
+                  <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
+                    Amount
+                  </th>
+                  <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
+                    Chain
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {uploadedData.map((item, idx) => (
+                  <tr
+                    key={idx}
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                  >
+                    <td className="py-4 text-sm text-gray-900">
+                      {item.recipient}
+                    </td>
+                    <td className="py-4 text-sm text-gray-600 font-mono truncate">
+                      {item.wallet}
+                    </td>
+                    <td className="py-4 text-sm text-gray-900 font-semibold">
+                      {item.amount}
+                    </td>
+                    <td className="py-4 text-sm text-gray-600">{item.chain}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {uploadedData.map((item, idx) => (
-                    <tr
-                      key={idx}
-                      className="border-b border-gray-200 hover:bg-gray-50"
-                    >
-                      <td className="py-4 text-sm text-gray-900">
-                        {item.recipient}
-                      </td>
-                      <td className="py-4 text-sm text-gray-600 font-mono truncate">
-                        {item.wallet}
-                      </td>
-                      <td className="py-4 text-sm text-gray-900 font-semibold">
-                        {item.amount}
-                      </td>
-                      <td className="py-4 text-sm text-gray-600">
-                        {item.chain}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            {/* Mobile Card View */}
-            <div className="sm:hidden space-y-4 mb-6">
-              {uploadedData.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {item.recipient}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1 font-mono truncate">
-                        {item.wallet}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <p className="text-gray-600">{item.chain}</p>
-                    <p className="font-bold text-gray-900">{item.amount}</p>
+          {/* Mobile Card View */}
+          <div className="sm:hidden space-y-4 mb-6">
+            {uploadedData.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">
+                      {item.recipient}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1 font-mono truncate">
+                      {item.wallet}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                Proceed with Upload
-              </button>
-              <button
-                onClick={() => setUploadedData(null)}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 px-6 py-3 rounded-lg font-semibold transition-colors"
-              >
-                Clear Data
-              </button>
-            </div>
+                <div className="flex justify-between items-center text-sm">
+                  <p className="text-gray-600">{item.chain}</p>
+                  <p className="font-bold text-gray-900">{item.amount}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              Proceed with Upload
+            </button>
+            <button
+              onClick={() => setUploadedData(null)}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 px-6 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Clear Data
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -11,6 +11,8 @@ import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import PayrollModal from "@/components/payrollcard";
+
 import { erc20Abi, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import { TREASURY_ADDRESS } from '../../utils/constants'
@@ -22,6 +24,7 @@ const Dashboard = () => {
   const [totalTreasury, setTotalTreasury] = useState(0);
   const [selectedChains] = useState<string[]>(["Base Sepolia"]);
   const { deposit, loading, success, error } = useDeposit();
+  const [trigger, setTrigger] = useState(false);
   const [depositLoading, setDepositLoading] = useState(false);
   const { isConnected, chainId } = useAccount();
 
@@ -163,9 +166,11 @@ const Dashboard = () => {
 
               <p className="text-gray-600 text-[17px] mt-1">USDC Balance</p>
             </div>
-            <div>
-              <Button onClick={onDepositClick} disabled={depositLoading}>
-                {depositLoading ? "Depositing..." : "+ Deposit Funds"}
+
+            <div className="flex gap-3">
+              <PayrollModal />
+              <Button onClick={onDepositClick} disabled={loading}>
+                {loading ? "Depositing..." : "+ Deposit Funds"}
               </Button>
             </div>
           </div>
