@@ -19,7 +19,7 @@ export default function PayrollsPage() {
         {/* Top Section - Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Total Processed Card */}
-          <div className="bg-white border p-6  pt-6 pb-10 border-black rounded-2xl sm:p-6 md:col-span-2">
+          <div className="bg-white border p-6  pt-6  border-black rounded-2xl sm:p-6 md:col-span-2">
             <h3 className=" text-black text-lg  font-semibold mb-4">
               Total Processed
             </h3>
@@ -94,13 +94,28 @@ export default function PayrollsPage() {
                 </div>
               </div>
 
-              <div className="bg-white border border-black rounded-2xl p-6 sm:p-8">
-                <h2 className="text-lg font-bold text-gray-900 mb-2">Status</h2>
+              <div className="bg-white border p-6 mb-8 pt-4 pb-10 border-black rounded-2xl sm:p-8">
+                <h3 className="text-sm text-gray-600 font-medium mb-3">
+                  Status
+                </h3>
+                <p className="text-2xl sm:text-1xl font-bold text-[#FEB20D] mb-4">
+                  Awaiting Review
+                </p>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Queue Position :</span>
+                    <span className="text-gray-900 font-semibold">#3</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Est. Time :</span>
+                    <span className="text-gray-900 font-semibold">2 hrs</span>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Payroll Summary */}
-            <div className="bg-white border border-black rounded-2xl p-6 sm:p-8">
+            <div className="bg-white border border-black rounded-2xl  sm:p-8">
               <h2 className="text-lg font-bold text-gray-900 mb-2">
                 Payroll Summary
               </h2>
