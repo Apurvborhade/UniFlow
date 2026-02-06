@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { useWallet } from "@/contexts/walletContext";
+import { ConnectKitButton } from "connectkit";
+import { ChainSwitcher } from "./ChainSwitcher";
 
 const items = ["Treasury", "Payrolls", "Schedule"];
 
@@ -14,6 +15,11 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { connect, isConnected, address, isConnecting } = useWallet();
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -79,6 +85,10 @@ export default function Navbar() {
       </button>
 
       {/* Mobile Menu */}
+      
+
+      <ConnectKitButton />
+
       <button
         className="md:hidden flex items-center justify-center"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -100,6 +110,7 @@ export default function Navbar() {
                 {item}
               </Link>
             ))}
+            
           </div>
         </div>
       )}

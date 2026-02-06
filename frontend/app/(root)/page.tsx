@@ -2,7 +2,8 @@
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
 import { Button } from "@/components/ui/button";
 import { useDeposit } from "@/hooks/useDeposit";
-import { useWallet } from "@/contexts/walletContext";
+import { getClientsByChainId } from "@/utils/getClients";
+
 
 import axios from "axios";
 
@@ -12,8 +13,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import PayrollModal from "@/components/payrollcard";
 
+import { erc20Abi, parseUnits } from "viem";
+import { useAccount } from "wagmi";
+import { TREASURY_ADDRESS } from '../../utils/constants'
 const Dashboard = () => {
-  const { address } = useWallet();
+  const { address } = useAccount();
 
   const inflow = useMotionValue(0);
   const [countDone, setCountDone] = useState(false);
@@ -21,21 +25,80 @@ const Dashboard = () => {
   const [selectedChains] = useState<string[]>(["Base Sepolia"]);
   const { deposit, loading, success, error } = useDeposit();
   const [trigger, setTrigger] = useState(false);
+  const [depositLoading, setDepositLoading] = useState(false);
+  const { isConnected, chainId } = useAccount();
 
-  const { isConnected } = useWallet();
+  async function approveUSDC(
+    chainId: number,
+    account: `0x${string}`,
+    spender: `0x${string}`,
+    amount: string
+  ) {
+    const { publicClient, walletClient, config } =
+      getClientsByChainId(chainId);
 
+    const value = parseUnits(amount, 6);
+
+    const { request } = await publicClient.simulateContract({
+      account,
+      address: config.usdc,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [spender, value],
+    });
+
+    return walletClient.writeContract(request);
+  }
+
+  async function transfer(chainId: number,
+    account: `0x${string}`,
+    spender: `0x${string}`,
+    amount: string) {
+    const { publicClient, walletClient, config } =
+      getClientsByChainId(chainId);
+
+    const value = parseUnits(amount, 6);
+
+    const { request } = await publicClient.simulateContract({
+      account,
+      address: config.usdc,
+      abi: erc20Abi,
+      functionName: "transfer",
+      args: [spender, value],
+    });
+
+    return walletClient.writeContract(request);
+  }
   async function onDepositClick() {
-    if (!isConnected) {
-      toast.error("Connect wallet first");
-      return;
+    try {
+      if (!isConnected) {
+        toast.error("Connect wallet first");
+        return;
+      }
+
+      if (selectedChains.length === 0) {
+        toast.error("Select at least one chain");
+        return;
+      }
+      setDepositLoading(true);
+
+      const employees = await axios.get("https://uniflow-backend.apurvaborhade.dev/api/employees").then((res) => res.data.data);
+      console.log("Employees : ", employees)
+      const totalSalary = employees.reduce((acc: number, employee: any) => acc + Number(employee.salaryAmount), 0);
+      console.log("Total Salary:", totalSalary);
+
+
+      const approveTx = await approveUSDC(chainId!, address!, TREASURY_ADDRESS, totalSalary.toString());
+
+      const transferTx = await transfer(chainId!, address!, TREASURY_ADDRESS, totalSalary.toString());
+
+      await deposit(["ethereum", "base", "arc"]);
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setDepositLoading(false);
     }
 
-    if (selectedChains.length === 0) {
-      toast.error("Select at least one chain");
-      return;
-    }
-
-    await deposit(["ethereum", "base", "avalanche", "arc"]);
   }
   useEffect(() => {
     if (success) {
