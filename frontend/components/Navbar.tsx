@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
 
-const items = ["Treasury", "Payments", "payrolls"];
+const items = ["Treasury", "Payments", "payrolls","Schedule"];
 
 export default function Navbar() {
   const [hovered, setHovered] = useState<number | null>(null);
@@ -23,8 +23,10 @@ export default function Navbar() {
           }}
         >
           {items.map((item, i) => (
-            <button
+            
+            <Link
               key={item}
+              href={`/${item === "Treasury" ? "/" : item.toLowerCase()}`}
               onMouseEnter={() => setHovered(i)}
               className="relative px-6 py-2 text-gray-900 cursor-pointer rounded-full hover:text-gray-900 "
             >
@@ -36,7 +38,7 @@ export default function Navbar() {
                 />
               )}
               <span className="relative z-10">{item}</span>
-            </button>
+            </Link>
           ))}
         </nav>
         <button className="group relative overflow-hidden rounded-full font-semibold border-2 hover:cursor-pointer bg-black px-6 py-3 text-white transition-colors duration-500 hover:text-black">
