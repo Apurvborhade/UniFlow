@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { useWallet } from "@/contexts/walletContext";
+import { ConnectKitButton } from "connectkit";
+import { ChainSwitcher } from "./ChainSwitcher";
 
 const items = ["Treasury", "payrolls", "Schedule"];
 
@@ -11,7 +12,7 @@ export default function Navbar() {
   const [hovered, setHovered] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { connect, isConnected, address, isConnecting } = useWallet();
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -51,22 +52,10 @@ export default function Navbar() {
           </Link>
         ))}
       </nav>
-      <button
-        onClick={connect}
-        disabled={isConnecting}
-        className="hidden md:block group relative overflow-hidden rounded-full font-semibold border-2 hover:cursor-pointer bg-black px-6 py-3 text-white transition-colors duration-500 hover:text-black disabled:opacity-60"
-      >
-        <span className="relative z-10">
-          {isConnected
-            ? `${address?.slice(0, 6)}...${address?.slice(-4)}`
-            : isConnecting
-              ? "Connecting..."
-              : "Connect Wallet"}
-        </span>
+      
 
-        <span className="absolute inset-0 scale-0 rounded-full bg-white transition-transform duration-700 ease-out group-hover:scale-[4]" />
-      </button>
-      {/* Mobile Menu Button */}
+      <ConnectKitButton />
+
       <button
         className="md:hidden flex items-center justify-center"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -91,18 +80,7 @@ export default function Navbar() {
                 {item}
               </Link>
             ))}
-            <button
-              onClick={connect}
-              className="group relative overflow-hidden rounded-full font-semibold border-2 bg-black px-6 py-3 text-white w-full"
-            >
-              <span className="relative z-10">
-                {isConnected
-                  ? `${address?.slice(0, 6)}...${address?.slice(-4)}`
-                  : "Connect Wallet"}
-              </span>
-
-              <span className="absolute inset-0 scale-0 rounded-full bg-white transition-transform duration-700 ease-out group-hover:scale-[4]" />
-            </button>
+            
           </div>
         </div>
       )}
