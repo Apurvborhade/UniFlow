@@ -128,7 +128,9 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
                 console.error("Gateway /transfer error:", json);
                 continue;
             }
-
+            send("EMPLOYEE_PREFERRED CHAIN", {
+                chain: employee.preferredChain
+            })
             const tx = await circleDeveloperSdkClient.createContractExecutionTransaction({
                 walletAddress: DEPOSITOR_ADDRESS,
                 blockchain: employee.preferredChain,
@@ -147,19 +149,17 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
             });
             if (!txId) throw new Error("Failed to submit mint transaction");
 
-            const txInfo = await circleDeveloperSdkClient.getTransaction({
-                id: txId
-            })
-
-            console.log("TX Info: ", txInfo.data)
 
 
-            await waitForTxCompletion(circleDeveloperSdkClient, txId, "USDC mint");
+            const finalTx: any = await waitForTxCompletion(circleDeveloperSdkClient, txId, "USDC mint");
+   
+
+        
 
             send("EMPLOYEE_COMPLETED", {
                 employeeId: employee.id,
                 amount: employee.salaryAmount.toNumber(),
-                tx: txInfo.data
+                tx: finalTx,
             });
 
             await prisma.transaction.create({
