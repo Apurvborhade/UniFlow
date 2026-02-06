@@ -1,7 +1,8 @@
 import { prisma } from '../lib/prisma.js';
 import { getEmployees } from '../services/employees.service.js';
-import { depositToGateway, getBalance } from '../services/treasury.service.js';
+import { depositToGateway, getBalance, getUnifiedAvailableBalanceOfWallet } from '../services/treasury.service.js';
 import { getDeveloperControlledWalletsClient } from '../utils/circle-utils.js'
+import { getUnifiedBalance } from './payroll.controller.js';
 
 const circleDeveloperSdkClientPromise = getDeveloperControlledWalletsClient();
 

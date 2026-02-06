@@ -46,9 +46,12 @@ app.post("/create", async (req, res, next) => {
 
 app.put("/update/:id", async (req, res, next) => {
     const { id } = req.params;
-    const { frequency, runAt, isActive, lastRunAt, nextRunAt } = req.body as PayrollSchedule;
-
+    const { frequency, runAt, isActive, lastRunAt, nextRunAt } = req.body;
+    
     try {
+        if(!frequency && !runAt && isActive === undefined && !lastRunAt && !nextRunAt) {
+            return res.status(400).send({ message: "At least one field (frequency, runAt, isActive, lastRunAt, nextRunAt) must be provided for update" });
+        }
         const schedule = await prisma.payrollSchedule.update({
             where: { id },
             data: {
