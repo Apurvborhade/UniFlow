@@ -12,11 +12,14 @@ export function useDeposit() {
       setLoading(true)
       setError(null)
 
-      const res = await fetch('/api/treasury/deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chains }),
-      })
+      const res = await fetch(
+        'https://uniflow-backend.apurvaborhade.dev/api/treasury/deposit',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chains }),
+        }
+      )
 
       if (!res.ok) {
         throw new Error('Deposit failed')

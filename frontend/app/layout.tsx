@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { Wallet } from "lucide-react";
+import { WalletProvider } from "@/contexts/walletContext";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -24,11 +26,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body
-        className={`${dmSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-         <Toaster richColors position="top-right" />
+      <body className={`${dmSans.variable} ${geistMono.variable} antialiased`}>
+        <WalletProvider>{children}</WalletProvider>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );

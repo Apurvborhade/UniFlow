@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { useWallet } from "@/hooks/useWallet";
+import { useWallet } from "@/contexts/walletContext";
 
 const items = ["Treasury", "payrolls", "Schedule"];
 

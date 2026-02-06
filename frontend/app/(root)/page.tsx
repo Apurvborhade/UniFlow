@@ -1,24 +1,58 @@
 "use client";
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
 import { Button } from "@/components/ui/button";
+import { useDeposit } from "@/hooks/useDeposit";
+import { useWallet } from "@/contexts/walletContext";
+
 import axios from "axios";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
-import { use, useEffect, useState } from "react";
-
-
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const Dashboard = () => {
+  const { address } = useWallet();
+
   const inflow = useMotionValue(10000);
   const [countDone, setCountDone] = useState(false);
   const [totalTreasury, setTotalTreasury] = useState(0);
+  const [selectedChains] = useState<string[]>(["Base Sepolia"]);
+  const { deposit, loading, success, error } = useDeposit();
+
+  const { isConnected } = useWallet();
+
+  async function onDepositClick() {
+    if (!isConnected) {
+      toast.error("Connect wallet first");
+      return;
+    }
+
+    if (selectedChains.length === 0) {
+      toast.error("Select at least one chain");
+      return;
+    }
+
+    await deposit(["ethereum", "base", "avalanche","arc"]);
+  }
+  useEffect(() => {
+    if (success) {
+      toast.success("Funds deposited successfully");
+    }
+    if (error) {
+      toast.error(error);
+    }
+  }, [success, error]);
+
   const APY = 0.085;
   const projectedMonthly = Math.round((totalTreasury * APY) / 12);
   useEffect(() => {
     const fetchTreasury = async () => {
       try {
-        const response = await axios.get("https://uniflow-backend.apurvaborhade.dev/api/treasury/balance");
+        const response = await axios.get(
+          "https://uniflow-backend.apurvaborhade.dev/api/treasury/balance",
+        );
+
         setTotalTreasury(response.data.balance);
       } catch (error) {
         console.error("Error fetching treasury balance:", error);
@@ -64,8 +98,8 @@ const Dashboard = () => {
               <p className="text-gray-600 text-[17px] mt-1">USDC Balance</p>
             </div>
             <div>
-              <Button className="mt-2 border-none text-white hover:scale-105 cursor-pointer hover:bg-blue-700">
-                <span className="text-xl font-bold">+</span> Deposit Funds
+              <Button onClick={onDepositClick} disabled={loading}>
+                {loading ? "Depositing..." : "+ Deposit Funds"}
               </Button>
             </div>
           </div>
