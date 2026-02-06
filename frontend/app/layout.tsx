@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -27,6 +28,7 @@ export default function RootLayout({
         className={`${dmSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+         <Toaster richColors position="top-right" />
       </body>
     </html>
   );
