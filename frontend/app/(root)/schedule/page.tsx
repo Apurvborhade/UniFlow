@@ -1,7 +1,9 @@
 "use client";
 
+import axios from "axios";
 import React from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function PayrollSchedulePage() {
   const [frequency, setFrequency] = useState<Frequency>("MONTHLY");
@@ -20,41 +22,40 @@ export default function PayrollSchedulePage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleAddSchedule = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddSchedule = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!runAt) {
-      alert("Please select a date and time");
-      return;
-    }
+  if (!runAt) {
+    toast.error("Please select a date and time");
+    return;
+  }
 
-    if (editingId) {
-      setSchedules(
-        schedules.map((schedule) =>
-          schedule.id === editingId
-            ? { ...schedule, frequency, runAt, isActive }
-            : schedule,
-        ),
-      );
-      setEditingId(null);
-    } else {
-      const newSchedule: PayrollSchedule = {
-        id: Date.now().toString(),
-        frequency,
-        runAt,
-        isActive,
-        lastRunAt: null,
-        nextRunAt: runAt,
-      };
-
-      setSchedules([...schedules, newSchedule]);
-    }
-
-    setRunAt("");
-    setFrequency("MONTHLY");
-    setIsActive(true);
-    setShowForm(false);
+  const newSchedule: PayrollSchedule = {
+    id: Date.now().toString(),
+    frequency,
+    runAt,
+    isActive,
+    lastRunAt: null,
+    nextRunAt: runAt,
   };
+
+  toast.promise(
+    axios.post(
+      "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/create",
+      newSchedule
+    ),
+    {
+      loading: "Creating payroll schedule...",
+      success: (res: any) => {
+        setSchedules((prev) => [...prev, newSchedule]);
+        setShowForm(false);
+        return res.data.message || "Schedule created 🎉";
+      },
+      error: (err: any) =>
+        err?.response?.data?.message || "Something went wrong",
+    }
+  );
+};
 
   const handleEditSchedule = (schedule: PayrollSchedule) => {
     setFrequency(schedule.frequency);
@@ -357,7 +358,7 @@ export default function PayrollSchedulePage() {
           </div>
         )}
 
-        {/* Help Section */}
+      
       </div>
     </main>
   );
