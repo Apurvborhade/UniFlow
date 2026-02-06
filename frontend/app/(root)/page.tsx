@@ -1,17 +1,32 @@
 "use client";
 import BalanceTrendsChart from "@/components/BalanceTrendsChart";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
-import { useEffect, useState } from "react";
-const TOTAL_TREASURY = 657000;
-const APY = 0.085;
-const projectedMonthly = Math.round((TOTAL_TREASURY * APY) / 12);
+import { use, useEffect, useState } from "react";
+
+
 
 const Dashboard = () => {
   const inflow = useMotionValue(10000);
   const [countDone, setCountDone] = useState(false);
+  const [totalTreasury, setTotalTreasury] = useState(0);
+  const APY = 0.085;
+  const projectedMonthly = Math.round((totalTreasury * APY) / 12);
+  useEffect(() => {
+    const fetchTreasury = async () => {
+      try {
+        const response = await axios.get("https://uniflow-backend.apurvaborhade.dev/api/treasury/balance");
+        setTotalTreasury(response.data.balance);
+      } catch (error) {
+        console.error("Error fetching treasury balance:", error);
+      }
+    };
+
+    fetchTreasury();
+  }, []);
 
   const formattedInflow = useTransform(
     inflow,
@@ -19,7 +34,7 @@ const Dashboard = () => {
   );
 
   useEffect(() => {
-    const controls = animate(inflow, TOTAL_TREASURY, {
+    const controls = animate(inflow, totalTreasury, {
       duration: 0.6,
       ease: "easeOut",
       onComplete: () => setCountDone(true),
