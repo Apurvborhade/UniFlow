@@ -10,6 +10,7 @@ import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import PayrollModal from "@/components/payrollcard";
 
 const Dashboard = () => {
   const { address } = useWallet();
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const [totalTreasury, setTotalTreasury] = useState(0);
   const [selectedChains] = useState<string[]>(["Base Sepolia"]);
   const { deposit, loading, success, error } = useDeposit();
+  const [trigger, setTrigger] = useState(false);
 
   const { isConnected } = useWallet();
 
@@ -33,7 +35,7 @@ const Dashboard = () => {
       return;
     }
 
-    await deposit(["ethereum", "base", "avalanche","arc"]);
+    await deposit(["ethereum", "base", "avalanche", "arc"]);
   }
   useEffect(() => {
     if (success) {
@@ -54,9 +56,9 @@ const Dashboard = () => {
         );
         const balances = response.data.balances;
         const totalFunds = Object.values(balances)
-        .map((val: unknown) => Number(val as string) || 0) // convert each value to number safely
-        .reduce((acc, curr) => acc + curr, 0);
-        
+          .map((val: unknown) => Number(val as string) || 0) // convert each value to number safely
+          .reduce((acc, curr) => acc + curr, 0);
+
         setTotalTreasury(totalFunds);
       } catch (error) {
         console.error("Error fetching treasury balance:", error);
@@ -101,7 +103,9 @@ const Dashboard = () => {
 
               <p className="text-gray-600 text-[17px] mt-1">USDC Balance</p>
             </div>
-            <div>
+
+            <div className="flex gap-3">
+              <PayrollModal />
               <Button onClick={onDepositClick} disabled={loading}>
                 {loading ? "Depositing..." : "+ Deposit Funds"}
               </Button>
