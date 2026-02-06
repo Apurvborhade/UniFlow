@@ -2,12 +2,7 @@
 import CSVUpload from "@/components/CSVUpload";
 import { motion } from "framer-motion";
 import { useState } from "react";
-interface ParsedPayrollData {
-  recipient: string;
-  wallet: string;
-  amount: string;
-  chain: string;
-}
+
 export default function PayrollsPage() {
   const [uploadedData, setUploadedData] = useState<ParsedPayrollData[] | null>(null);
 
@@ -325,13 +320,13 @@ export default function PayrollsPage() {
           />
         </div>
         {uploadedData && uploadedData.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
+          <div className="bg-white border w-full border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
               Uploaded Payroll Data ({uploadedData.length} records)
             </h2>
 
             {/* Desktop Table */}
-            <div className="hidden sm:block overflow-x-auto mb-6">
+            <div className="hidden  sm:block overflow-x-auto mb-6">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
