@@ -12,7 +12,7 @@ app.post('/approve', (req, res) => {
 });
 
 // Run Payroll
-app.post('/run', runPayroll);
+app.get('/run', runPayroll);
 
 // Payroll Status
 app.get('/status', (req, res) => {

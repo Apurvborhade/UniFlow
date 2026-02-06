@@ -10,9 +10,8 @@ import { AppError } from "../utils/AppError.js";
 
 const domain = { name: "GatewayWallet", version: "1" };
 
-async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleDeveloperControlledWalletsClient) {
-    const requests: any[] = [];
-    const burnIntentsForTotal: any[] = [];
+async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleDeveloperControlledWalletsClient, send: (event: string, data?: any) => void) {
+
     console.log("Parsing selected chains...");
     const chains = ["ethereum", "arc", "base"];
     const selectedChains = await parseSelectedChains(chains);
@@ -34,7 +33,11 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
     console.log("numeric Balance: ", numericBalances)
     const totalBalance = Object.values(numericBalances).reduce((sum, balance) => sum + balance, 0);
 
-
+    send("EMPLOYEE_START", {
+        employeeCount: employees.length,
+        totalSalary: employees.reduce((acc, employee) => acc + employee.salaryAmount.toNumber(), 0.0),
+        totalBalance
+    });
     console.log(`Processing ${employees.length} employees...`);
 
 
@@ -104,7 +107,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
                 console.warn(`No chains with sufficient balance for employee ${employee.id}`);
                 continue;
             }
-
+            send("CROSSCHAIN_TRANSFER", {});
             const response = await fetch(
                 "https://gateway-api-testnet.circle.com/v1/transfer",
                 {
@@ -137,11 +140,27 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
 
 
             const txId = tx.data?.id;
+
+            send("MINT_TX_SUBMITTED", {
+                employeeId: employee.id,
+                txId
+            });
             if (!txId) throw new Error("Failed to submit mint transaction");
+
             const txInfo = await circleDeveloperSdkClient.getTransaction({
                 id: txId
             })
+
             console.log("TX Info: ", txInfo.data)
+
+
+            await waitForTxCompletion(circleDeveloperSdkClient, txId, "USDC mint");
+
+            send("EMPLOYEE_COMPLETED", {
+                employeeId: employee.id,
+                amount: employee.salaryAmount.toNumber(),
+                tx: txInfo.data
+            });
 
             await prisma.transaction.create({
                 data: {
@@ -157,8 +176,6 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
                     transactionId: txId,
                 }
             });
-            await waitForTxCompletion(circleDeveloperSdkClient, txId, "USDC mint");
-
             const totalMintBaseUnits = employeeBurnIntents.reduce(
                 (sum, i) => sum + (i.spec.value ?? 0n),
                 0n,
@@ -166,7 +183,10 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
             console.log(`Minted ${formatUnits(totalMintBaseUnits, 6)} USDC for employee ${employee.id}`);
 
         } catch (err: any) {
-            console.log(err)
+            send("EMPLOYEE_FAILED", {
+                employeeId: employee.id,
+                error: err.message
+            });
             console.error("Payroll Transfer Failed for employee:", err.message);
         }
     }

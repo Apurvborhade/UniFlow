@@ -9,18 +9,30 @@ import { getDeveloperControlledWalletsClient } from "../utils/circle-utils.js";
 const circleDeveloperSdkClientPromise = getDeveloperControlledWalletsClient();
 
 async function runPayroll(req: any, res: any, next: any) {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    const send = (event: string, data: any = {}) => {
+        res.write(`event: ${event}\n`);
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
     try {
+        send("INIT")
         const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
 
         const employees = await getEmployees() as any[];
 
         const totalSalary = employees?.reduce((acc: any, employee) => acc + employee.salaryAmount.toNumber(), 0.0);
-        
+
         const balance = await getBalance();
 
         const usdcAmount = balance.data?.tokenBalances?.find((token: any) => token.token.symbol === 'USDC')?.amount || 0;
 
         if (usdcAmount < totalSalary) {
+            send("FAILED", { reason: "INSUFFICIENT_FUNDS" });
             throw new Error('Insufficient funds in treasury to run payroll');
         }
 
@@ -30,11 +42,16 @@ async function runPayroll(req: any, res: any, next: any) {
         }, {});
 
         // Run transfers
-        await transferFunds(employees, circleDeveloperSdkClient);
+        await transferFunds(employees, circleDeveloperSdkClient,send);
+        send("PAYROLL_COMPLETED", {
+            employeeCount: employees.length,
+            totalSalary
+        });
 
-
-        res.send({ message: 'Payroll run successfully', totalSalary: totalSalary, employeeCount: employees?.length, tokenBalances: tokenBalances });
-    } catch (error) {
+        res.end();
+    } catch (error: any) {
+        send("FAILED", { error: error.message });
+        res.end();
         next(error)
     }
 }
