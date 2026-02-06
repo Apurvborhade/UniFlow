@@ -10,9 +10,7 @@ export default function PayrollSchedulePage() {
   const [runAt, setRunAt] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [schedules, setSchedules] = useState<PayrollSchedule[]>([]);
-  const toDateTimeLocal = (iso: string) =>
-  iso ? iso.slice(0, 16) : "";
-
+  const toDateTimeLocal = (iso: string) => (iso ? iso.slice(0, 16) : "");
 
   useEffect(() => {
     axios
@@ -33,66 +31,63 @@ export default function PayrollSchedulePage() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleAddSchedule = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!runAt) {
-    toast.error("Please select a date and time");
-    return;
-  }
-
-  const payload = { frequency, runAt, isActive };
-
-  
-  if (editingId) {
-    try {
-      const res = await axios.put(
-        `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/update/${editingId}`,
-        payload
-      );
-
-      const updated: PayrollSchedule = res.data.schedule;
-
-      console.log("Updated from API:", updated);
-
-      setSchedules((prev) =>
-        prev.map((s) => (s.id === updated.id ? updated : s))
-      );
-
-      setEditingId(null);
-      setShowForm(false);
-      toast.success(res.data.message || "Schedule updated");
-    } catch (err) {
-      console.error("Update failed:", err);
-      toast.error("Update failed");
+    if (!runAt) {
+      toast.error("Please select a date and time");
+      return;
     }
-    return;
-  }
 
-  
-  try {
-    const res = await axios.post(
-      "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/create",
-      payload
-    );
+    const payload = { frequency, runAt, isActive };
 
-    const created: PayrollSchedule = res.data.schedule;
+    if (editingId) {
+      try {
+        const res = await axios.put(
+          `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/update/${editingId}`,
+          payload,
+        );
 
-    setSchedules((prev) => [...prev, created]);
+        const updated: PayrollSchedule = res.data.schedule;
 
-    toast.success("Schedule created successfully");
-  } catch (err) {
-    console.error("Create failed:", err);
-    toast.error("Failed to create schedule");
-  }
+        console.log("Updated from API:", updated);
 
-  setRunAt("");
-  setFrequency("MONTHLY");
-  setIsActive(true);
-  setShowForm(false);
-};
+        setSchedules((prev) =>
+          prev.map((s) => (s.id === updated.id ? updated : s)),
+        );
+
+        setEditingId(null);
+        setShowForm(false);
+        toast.success(res.data.message || "Schedule updated");
+      } catch (err) {
+        console.error("Update failed:", err);
+        toast.error("Update failed");
+      }
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/create",
+        payload,
+      );
+
+      const created: PayrollSchedule = res.data.schedule;
+
+      setSchedules((prev) => [...prev, created]);
+
+      toast.success("Schedule created successfully");
+    } catch (err) {
+      console.error("Create failed:", err);
+      toast.error("Failed to create schedule");
+    }
+
+    setRunAt("");
+    setFrequency("MONTHLY");
+    setIsActive(true);
+    setShowForm(false);
+  };
 
   const handleEditSchedule = async (schedule: PayrollSchedule) => {
-   
     setFrequency(schedule.frequency);
     setRunAt(toDateTimeLocal(schedule.runAt));
     setIsActive(schedule.isActive);
@@ -119,7 +114,16 @@ export default function PayrollSchedulePage() {
   };
 
   const deleteSchedule = (id: string) => {
-    setSchedules(schedules.filter((schedule) => schedule.id !== id));
+    try {
+      axios.delete(
+        `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/delete/${id}`,
+      );
+      setSchedules((prev) => prev.filter((schedule) => schedule.id !== id));
+      toast.success("Schedule deleted");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete schedule");
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -217,15 +221,15 @@ export default function PayrollSchedulePage() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() =>
-                                setSchedules((prev) =>{
-                                  
-                                const updated=prev.map((s)=>s.id === schedule.id ? { ...s, isActive: !s.isActive } : s)
-                                console.log("Toggled schedule:", updated)
-                                return updated
-
-                                }
-                                 
-                                )
+                                setSchedules((prev) => {
+                                  const updated = prev.map((s) =>
+                                    s.id === schedule.id
+                                      ? { ...s, isActive: !s.isActive }
+                                      : s,
+                                  );
+                                  console.log("Toggled schedule:", updated);
+                                  return updated;
+                                })
                               }
                               className={`w-9 h-5 flex items-center rounded-full p-1 transition-colors ${schedule.isActive ? "bg-green-500" : "bg-gray-300"}`}
                             >
