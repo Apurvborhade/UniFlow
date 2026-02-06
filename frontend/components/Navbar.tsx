@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
-const items = ["Treasury", "Payments", "payrolls", "Schedule"];
+const items = ["Treasury", "payrolls", "Schedule"];
 
 export default function Navbar() {
   const [hovered, setHovered] = useState<number | null>(null);
