@@ -23,41 +23,65 @@ export default function PayrollSchedulePage() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleAddSchedule = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!runAt) {
-    toast.error("Please select a date and time");
-    return;
-  }
+    if (!runAt) {
+      toast.error("Please select a date and time");
+      return;
+    }
+    const payload = {
+      frequency,
+      runAt,
+      isActive,
+    };
 
-  const newSchedule: PayrollSchedule = {
-    id: Date.now().toString(),
-    frequency,
-    runAt,
-    isActive,
-    lastRunAt: null,
-    nextRunAt: runAt,
+    if (editingId) {
+      toast.promise(
+        axios.put(
+          `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/update/${editingId}`,
+          payload,
+        ),
+        {
+          loading: "Updating payroll schedule...",
+          success: (res: any) => {
+            setSchedules((prev) =>
+              prev.map((s) => (s.id === editingId ? res.data.schedule : s)),
+            );
+            setEditingId(null);
+            setShowForm(false);
+            return res.data.message || "Schedule updated ";
+          },
+          error: (err: any) => err?.response?.data?.message || "Update failed",
+        },
+      );
+      return;
+    }
+
+    const newSchedule: PayrollSchedule = {
+      id: Date.now().toString(),
+      ...payload,
+      lastRunAt: null,
+      nextRunAt: runAt,
+    };
+
+    toast.promise(
+      axios.post(
+        "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/create",
+        newSchedule,
+      ),
+      {
+        loading: "Creating payroll schedule...",
+        success: (res: any) => {
+          setSchedules((prev) => [...prev, newSchedule]);
+          setShowForm(false);
+          return res.data.message || "Schedule created ";
+        },
+        error: (err: any) => err?.response?.data?.message || "Create failed",
+      },
+    );
   };
 
-  toast.promise(
-    axios.post(
-      "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/create",
-      newSchedule
-    ),
-    {
-      loading: "Creating payroll schedule...",
-      success: (res: any) => {
-        setSchedules((prev) => [...prev, newSchedule]);
-        setShowForm(false);
-        return res.data.message || "Schedule created 🎉";
-      },
-      error: (err: any) =>
-        err?.response?.data?.message || "Something went wrong",
-    }
-  );
-};
-
-  const handleEditSchedule = (schedule: PayrollSchedule) => {
+  const handleEditSchedule = async (schedule: PayrollSchedule) => {
     setFrequency(schedule.frequency);
     setRunAt(schedule.runAt);
     setIsActive(schedule.isActive);
@@ -100,29 +124,41 @@ export default function PayrollSchedulePage() {
 
   return (
     <main className="min-h-screen bg-white">
+      <div className=" max-w-5xl mx-auto ml-8  bg-white  rounded-2xl p-6 sm:p-2 mb-6 sm:mb-0">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+            Payroll Schedules
+          </h2>
+
+          <button
+            onClick={() => {
+              handleCancelEdit();
+              setShowForm(true);
+            }}
+            className="bg-black hover:bg-blue-700 hover:scale-105 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+          >
+            + Add Schedule
+          </button>
+        </div>
+      </div>
+
       <div className="max-w-5xl  mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-8 sm:mt-0">
         {/* Active Schedules List */}
-        {schedules.length > 0 && (
+        {schedules.length > 0 ? (
+          <>
           <div className="bg-white border border-black rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 Active Schedules
               </h2>
-              <button
-                onClick={() => {
-                  handleCancelEdit();
-                  setShowForm(true);
-                }}
-                className="bg-black hover:bg-blue-700 hover:scale-105 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base"
-              >
-                + Add Schedule
-              </button>
+             
             </div>
-
-            {/* Desktop Table View */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full">
-                <thead>
+            
+              
+                {/* Desktop Table View */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
                   <tr className="border-b border-gray-200">
                     <th className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider py-3">
                       Frequency
@@ -200,7 +236,7 @@ export default function PayrollSchedulePage() {
                           >
                             Edit
                           </button>
-                        
+
                           <button
                             onClick={() => deleteSchedule(schedule.id)}
                             className="px-3 py-1 bg-red-700 text-white rounded-lg text-xs font-semibold hover:bg-red-800 transition-colors"
@@ -282,7 +318,28 @@ export default function PayrollSchedulePage() {
               ))}
             </div>
           </div>
-        )}
+        
+      </>) : (
+        <div className="bg-white border border-black rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
+          <div className="flex flex-col items-center gap-4 py-10">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              No Payroll Schedules Found
+            </h2>
+            <p className="text-sm text-gray-600">
+              Get started by creating your first payroll schedule.
+            </p>  
+            <button
+              onClick={() => {
+                handleCancelEdit();
+                setShowForm(true);
+              }}
+              className="bg-black hover:bg-blue-700 hover:scale-105 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+            >
+              + Add Schedule  
+            </button>
+          </div>
+        </div>
+      )}
 
         {/* Create/Edit Schedule Form */}
         {showForm && (
@@ -337,7 +394,6 @@ export default function PayrollSchedulePage() {
                 />
               </div>
 
-
               {/* Submit Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                 <button
@@ -357,8 +413,6 @@ export default function PayrollSchedulePage() {
             </form>
           </div>
         )}
-
-      
       </div>
     </main>
   );
