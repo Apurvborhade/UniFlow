@@ -1,10 +1,26 @@
 "use client";
 import CSVUpload from "@/components/CSVUpload";
+import axios from "axios";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function PayrollsPage() {
   const [uploadedData, setUploadedData] = useState<ParsedPayrollData[] | null>(null);
+  const [employeeCount, setEmployeeCount] = useState<number | null>(null);
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const employee = await axios.get("https://uniflow-backend.apurvaborhade.dev/api/employees");
+        const empoyeeNumber = employee.data.data;
+        const empoyeeNumberLength = empoyeeNumber.length;
+        setEmployeeCount(empoyeeNumberLength);
+        console.log("Number of employees:", empoyeeNumberLength);
+      } catch (error) {
+        console.error("Failed to fetch employees:", error);
+      }
+    };
+    fetchEmployees();
+  }, []);
 
   const payrollData = {
     totalProcessed: "$25,000",
@@ -15,8 +31,8 @@ export default function PayrollsPage() {
     nextCycle: "in 5 days",
   };
   const recipients = [
-    { status: "Approved", count: 4 },
-    { status: "Pending", count: 1 },
+    { status: "Approved", count: employeeCount },
+    { status: "Pending", count: 0 },
   ];
   const payrollSummary = {
     avgPayment: "$5,000",
@@ -110,7 +126,7 @@ export default function PayrollsPage() {
                   className="block"
                 >
                   <p className="text-3xl sm:text-4xl font-bold text-black mb-4">
-                    {recipients.reduce((sum, r) => sum + r.count, 0)}
+                    {employeeCount !== null ? employeeCount : "Loading..."}
                   </p>
                 </motion.span>
                 <div className="space-y-3 text-sm">
