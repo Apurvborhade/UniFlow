@@ -18,11 +18,35 @@ export default function PayrollsPage() {
     processingFee: "$250",
     netAmount: "$24,750",
   };
+   const payrollBatch = [
+    {
+      recipient: 'Alice Johnson',
+      wallet: '0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...',
+      amount: '$15000',
+      chain: 'Ethereum',
+      status: 'Confirmed',
+    },
+    {
+      recipient: 'Aave Protocol',
+      wallet: '0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...',
+      amount: '$2500',
+      chain: 'Ethereum',
+      status: 'Confirmed',
+    },
+    {
+      recipient: 'Aave Protocol',
+      wallet: '0x742d35Cc6634C0532925a3b844Bc814e4e79d635fc...',
+      amount: '$2500',
+      chain: 'Ethereum',
+      status: 'Confirmed',
+    },
+  ];
+
   return (
     <main className="max-w-5xl mx-auto px-5 py-4 flex flex-col items-center">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-0 sm:mt-0">
         {/* Top Section - Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-start grid-cols-1 md:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Total Processed Card */}
           <div className="bg-white border p-6  pt-6  border-black rounded-2xl sm:p-6 md:col-span-2">
             <h3 className=" text-black text-lg  font-semibold mb-4">
@@ -70,7 +94,7 @@ export default function PayrollsPage() {
           <div className="grid grid-cols-1 gap-4 sm:gap-6 md:col-span-3">
             {/* Top two cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white border p-6 mb-8 pt-4 pb-10 border-black rounded-2xl  sm:p-8">
+              <div className="bg-white border p-6  pt-4 pb-10 border-black rounded-2xl  sm:p-8">
                 <h3 className="text-black text-lg  font-semibold mb-3 mt-0 pt-0">
                   Recipients
                 </h3>
@@ -99,7 +123,7 @@ export default function PayrollsPage() {
                 </div>
               </div>
 
-              <div className="bg-white border p-6 mb-8 pt-4 pb-10 border-black rounded-2xl sm:p-8">
+              <div className="bg-white border p-6  pt-4 pb-10 border-black rounded-2xl sm:p-8">
                 <h3 className=" text-black  font-semibold text-lg mb-3">
                   Status
                 </h3>
@@ -179,13 +203,86 @@ export default function PayrollsPage() {
       {/* Payroll Batch Section */}
       <div className="bg-white w-full border border-black rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
         <div className="mb-6">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-            Payroll Batch
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-600">
-            Review and approve recipient list before distribution
-          </p>
-        </div>
+            <h2 className="text-lg sm:text-xl font-bold text-black mb-2">Payroll Batch</h2>
+            <p className="text-xs sm:text-sm text-gray-600">
+              Review and approve recipient list before distribution
+            </p>
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto mb-6">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
+                    Recipient
+                  </th>
+                  <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
+                    Wallet
+                  </th>
+                  <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
+                    Amount(USD)
+                  </th>
+                  <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
+                    Chain
+                  </th>
+                  <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {payrollBatch.map((batch, idx) => (
+                  <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="py-4 text-sm text-gray-900">{batch.recipient}</td>
+                    <td className="py-4 text-sm text-gray-600 font-mono">{batch.wallet}</td>
+                    <td className="py-4 text-sm text-gray-900">{batch.amount}</td>
+                    <td className="py-4 text-sm text-gray-600">{batch.chain}</td>
+                    <td className="py-4">
+                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                        {batch.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="sm:hidden space-y-4 mb-6">
+            {payrollBatch.map((batch, idx) => (
+              <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{batch.recipient}</p>
+                    <p className="text-xs text-gray-600 mt-1 font-mono">{batch.wallet}</p>
+                  </div>
+                  <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                    {batch.status}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <p className="text-gray-600">{batch.chain}</p>
+                  <p className="font-bold text-gray-900">{batch.amount}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total Distribution */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t border-gray-200">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">Total Distribution</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{payrollData.totalProcessed} USDC</p>
+            </div>
+            <button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              Approve & Execute
+            </button>
+          </div>
+        
+        
+
       </div>
     </main>
   );
