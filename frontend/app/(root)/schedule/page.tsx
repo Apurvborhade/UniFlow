@@ -103,15 +103,36 @@ export default function PayrollSchedulePage() {
     setIsActive(true);
   };
 
-  const toggleScheduleActive = (id: string) => {
+  const toggleScheduleActive = async (id: string) => {
     
-    setSchedules(
-      schedules.map((schedule) =>
+     
+      const updatedSchedules = schedules.map((schedule) =>
         schedule.id === id
           ? { ...schedule, isActive: !schedule.isActive }
           : schedule,
-      ),
-    );
+      );
+      setSchedules(updatedSchedules);
+
+      
+      const toggledSchedule = updatedSchedules.find((s) => s.id === id);
+      if (!toggledSchedule) return;
+
+      try {
+        await axios.put(
+          `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/update/${id}`,
+          { isActive: toggledSchedule.isActive },
+        );
+        toast.success(
+          toggledSchedule.isActive ? "Schedule activated" : "Schedule paused",
+        );
+      } catch (err) {
+        console.error("Failed to update schedule status:", err);
+        toast.error("Failed to update schedule");
+
+        // Revert UI on error
+        setSchedules(schedules);
+      }
+    
   };
 
   const deleteSchedule = (id: string) => {
@@ -221,17 +242,7 @@ export default function PayrollSchedulePage() {
                         <td className="py-4">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() =>
-                                setSchedules((prev) => {
-                                  const updated = prev.map((s) =>
-                                    s.id === schedule.id
-                                      ? { ...s, isActive: !s.isActive }
-                                      : s,
-                                  );
-                                  console.log("Toggled schedule:", updated);
-                                  return updated;
-                                })
-                              }
+                            onClick={() => toggleScheduleActive(schedule.id)}
                               className={`w-9 h-5 flex items-center rounded-full p-1 transition-colors ${schedule.isActive ? "bg-green-500" : "bg-gray-300"}`}
                             >
                               <span
@@ -241,6 +252,7 @@ export default function PayrollSchedulePage() {
                             <span className="text-xs font-medium text-gray-700">
                               {schedule.isActive ? "Active" : "Inactive"}
                             </span>
+                           
                           </div>
                         </td>
 

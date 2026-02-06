@@ -9,6 +9,7 @@ export default function PayrollsPage() {
   const [uploadedData, setUploadedData] = useState<ParsedPayrollData[] | null>(null);
   const [employeeCount, setEmployeeCount] = useState<number | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
+  const [batchdate, setBatchDate] = useState<Date | null>(null);
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -24,6 +25,22 @@ export default function PayrollsPage() {
       }
     };
     fetchEmployees();
+  }, []);
+  useEffect(() => {
+    const fetchPayrollBatch = async () => {
+      try {
+        const response = await axios.get("https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/list");
+        const batchData = new Date(response.data.schedules[0]?.nextRunAt || null);
+        setBatchDate(batchData);
+
+        
+        console.log("Payroll batch data:", batchData.getDate());
+      }
+        catch (error) {
+        console.error("Failed to fetch payroll batch:", error);
+      } 
+    };
+    fetchPayrollBatch();
   }, []);
 
 
@@ -89,7 +106,7 @@ export default function PayrollsPage() {
               <div className="flex justify-between">
                 <span>Next Cycle</span>
                 <span className="text-gray-900 font-semibold">
-                  {payrollData.nextCycle}
+                  {batchdate ? batchdate.toLocaleDateString() : "No data" }
                 </span>
               </div>
             </div>
