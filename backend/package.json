@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/src/server.js"
   },
   "type": "module",
   "keywords": [],
