@@ -1,7 +1,7 @@
 import { CircleDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 import { prisma } from "../lib/prisma.js";
 import { waitForTxCompletion } from "../utils/arc/helper.js";
-import { CHAIN_CONFIG } from "../utils/arc/transferChainConfig.js";
+import { CHAIN_CONFIG, WalletChain } from "../utils/arc/transferChainConfig.js";
 import {
     burnIntentTypedData,
     makeBurnIntent,
@@ -14,13 +14,20 @@ import {
 } from "../utils/arc/transferConstants.js";
 import { getUnifiedAvailableBalanceOfWallet } from "./treasury.service.js";
 import { AppError } from "../utils/AppError.js";
+import { PreferredChain } from "../generated/prisma/client/enums.js";
 
 const domain = { name: "GatewayWallet", version: "1" };
 
 const SOURCE_CHAIN = "arc";
+const PreferredChainToWalletChain: Record<PreferredChain, WalletChain> = {
+  ETH_SEPOLIA: "ETH-SEPOLIA",
+  BASE_SEPOLIA: "BASE-SEPOLIA",
+  AVAX_FUJI: "AVAX-FUJI",
+  ARC_TESTNET: "ARC-TESTNET",
+};
 
 export async function transferFunds(
-    employees: any[],
+    employees: Array<{ id: string; salaryAmount: { toNumber(): number }; preferredChain: PreferredChain; walletAddress: string }>,
     circleClient: CircleDeveloperControlledWalletsClient,
     send: (event: string, data?: any) => void
 ) {
@@ -74,7 +81,7 @@ export async function transferFunds(
 
             const burnIntent = makeBurnIntent(
                 SOURCE_CHAIN,
-                employee.preferredChain.toUpperCase(),
+                PreferredChainToWalletChain[employee.preferredChain],
                 employee.walletAddress,
                 salary
             );
@@ -122,7 +129,7 @@ export async function transferFunds(
 
             const tx = await circleClient.createContractExecutionTransaction({
                 walletAddress: DEPOSITOR_ADDRESS,
-                blockchain: employee.preferredChain,
+                blockchain: PreferredChainToWalletChain[employee.preferredChain],
                 contractAddress: GATEWAY_MINTER_ADDRESS,
                 abiFunctionSignature: "gatewayMint(bytes,bytes)",
                 abiParameters: [json.attestation, json.signature],

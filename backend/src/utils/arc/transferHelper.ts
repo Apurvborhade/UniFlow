@@ -4,7 +4,7 @@ import { BurnIntent, BurnIntentType, DEPOSITOR_ADDRESS, DESTINATION_CHAIN, EIP71
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 
 // Construct burn intent for a given source chain
-function makeBurnIntent(sourceChain: Chain, destinationChain: Chain,recipientAddress:string, amount: number) {
+function makeBurnIntent(sourceChain: Chain, destinationChain: WalletChain,recipientAddress:string, amount: number) {
     const src = CHAIN_CONFIG[sourceChain];
     const dst = getConfigByWalletChain(destinationChain as WalletChain);
     const value = parseBalance(String(amount));
