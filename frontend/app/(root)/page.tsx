@@ -125,7 +125,7 @@ const Dashboard = () => {
   }, [success, error]);
 
   const APY = 0.085;
-  
+
   useEffect(() => {
     const fetchTreasury = async () => {
       try {
@@ -138,7 +138,6 @@ const Dashboard = () => {
           .reduce((acc, curr) => acc + curr, 0);
 
         setPayrollReserve(totalPayrollFunds);
-        setTotalTreasury(totalTreasury + totalPayrollFunds);
       } catch (error) {
         console.error("Error fetching payroll reserve:", error);
       }
@@ -160,7 +159,7 @@ const Dashboard = () => {
         setYeildVault(payrollVaultAmount);
 
         const AvailableFunds = Number(amountStr);
-        
+
         setAvailableFunds(AvailableFunds);
       } catch (error) {
         console.error("Error fetching available funds:", error);
@@ -169,6 +168,9 @@ const Dashboard = () => {
 
     fetchAvailableFunds();
   }, []);
+  useEffect(() => {
+    setTotalTreasury(YeildVault + payrollReserve + availableFunds);
+  }, [YeildVault, payrollReserve, availableFunds]);
 
   const formattedInflow = useTransform(
     inflow,
@@ -200,7 +202,9 @@ const Dashboard = () => {
                 transition={{ duration: 0.6 }}
                 className="text-5xl font-extrabold text-black"
               >
-                {formattedInflow}
+                {totalTreasury.toLocaleString(undefined, {
+                  maximumFractionDigits: 3,
+                })}
               </motion.p>
 
               <p className="text-gray-600 text-[17px] mt-1">USDC Balance</p>
@@ -318,9 +322,7 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white border border-gray-700 rounded-xl p-6 flex flex-col justify-between">
-            <h3 className="text-lg font-semibold text-black">
-              Yield Vault
-            </h3>
+            <h3 className="text-lg font-semibold text-black">Yield Vault</h3>
 
             <motion.span
               initial={{ opacity: 0, y: "30%" }}
@@ -329,11 +331,13 @@ const Dashboard = () => {
               className="block text-3xl font-bold text-blacktext-3xl text-black"
             >
               <p className="text-3xl font-bold text-black">
-                {YeildVault.toLocaleString(undefined, { maximumFractionDigits: 3 })}
-                {" "}
+                {YeildVault.toLocaleString(undefined, {
+                  maximumFractionDigits: 3,
+                })}{" "}
               </p>
-              <div className="text-[17px] font-semibold text-gray-600">usdy</div>
-              
+              <div className="text-[17px] font-semibold text-gray-600">
+                usdy
+              </div>
             </motion.span>
 
             <p className="text-gray-600 text-sm mt-1">
