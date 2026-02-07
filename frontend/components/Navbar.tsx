@@ -14,12 +14,13 @@ export default function Navbar() {
   const [hovered, setHovered] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { connect, isConnected, address, isConnecting } = useWallet();
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -69,25 +70,11 @@ export default function Navbar() {
       </nav>
 
       {/* Connect Wallet Button */}
-      <button
-        onClick={connect}
-        disabled={isConnecting}
-        className="hidden md:block group relative overflow-hidden rounded-full font-semibold border-2 hover:cursor-pointer bg-black px-6 py-3 text-white transition-colors duration-500 hover:text-black disabled:opacity-60"
-      >
-        <span className="relative z-10">
-          {isConnected
-            ? `${address?.slice(0, 6)}...${address?.slice(-4)}`
-            : isConnecting
-            ? "Connecting..."
-            : "Connect Wallet"}
-        </span>
-        <span className="absolute inset-0 scale-0 rounded-full bg-white transition-transform duration-700 ease-out group-hover:scale-[4]" />
-      </button>
+      <ConnectKitButton />
 
       {/* Mobile Menu */}
-      
 
-      <ConnectKitButton />
+      
 
       <button
         className="md:hidden flex items-center justify-center"
@@ -110,7 +97,6 @@ export default function Navbar() {
                 {item}
               </Link>
             ))}
-            
           </div>
         </div>
       )}
