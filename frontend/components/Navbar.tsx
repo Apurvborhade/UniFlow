@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react";
 import { ConnectKitButton } from "connectkit";
 import { ChainSwitcher } from "./ChainSwitcher";
 
-const items = ["Treasury", "Payrolls", "Schedule"];
+const items = ["Treasury", "Payrolls", "Schedule","employees"];
 
 export default function Navbar() {
   const pathname = usePathname();
