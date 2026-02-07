@@ -25,6 +25,24 @@ export default function PayrollModal({ start }: PayrollModalProps) {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [expectedTransfers, setExpectedTransfers] = useState<number>(0);
   const [eventQueue, setEventQueue] = useState<Checkpoint[]>([]);
+  const GLOBAL_EVENTS = new Set([
+    "INIT",
+    "BALANCE_OK",
+    "PAYROLL_START",
+    "PAYROLL_COMPLETED",
+    "PAYROLL_COMPLETE",
+    "FAILED",
+  ]);
+
+  const EMPLOYEE_EVENTS = new Set([
+    "EMPLOYEE_START",
+    "CROSSCHAIN_TRANSFER",
+    "MINT_TX_SUBMITTED",
+    "EMPLOYEE_COMPLETED",
+  ]);
+
+  const GLOBAL_EXPECTED_STEPS = 5;
+  const EMPLOYEE_EVENT_COUNT = EMPLOYEE_EVENTS.size;
 
   const startPayroll = () => {
     setShowCard(true);
@@ -42,6 +60,9 @@ export default function PayrollModal({ start }: PayrollModalProps) {
     const addCheckpoint = (event: string, data: any) => {
       setEventQueue((q) => [...q, { event, data }]);
       console.log(`Event: ${event}`, data);
+      if (event === "PAYROLL_START") {
+        setExpectedTransfers(data?.employeeCount || 0);
+      }
 
       if (event === "FAILED") {
         setCompleted(true);
@@ -61,10 +82,16 @@ export default function PayrollModal({ start }: PayrollModalProps) {
 
     const events = [
       "INIT",
-      "EMPLOYEE_START",
       "BALANCE_OK",
-      "TRANSFER_PROGRESS",
+      "PAYROLL_START",
+
+      "EMPLOYEE_START",
+      "CROSSCHAIN_TRANSFER",
+      "MINT_TX_SUBMITTED",
+      "EMPLOYEE_COMPLETED",
+
       "PAYROLL_COMPLETED",
+      "PAYROLL_COMPLETE",
       "FAILED",
     ];
 
@@ -89,11 +116,11 @@ export default function PayrollModal({ start }: PayrollModalProps) {
   useEffect(() => {
     return () => evtSourceRef.current?.close();
   }, []);
-  const BASE_STEPS = 4;
 
   const totalSteps = checkpoints.length + employeeTransfers.length;
 
-  const totalExpectedSteps = BASE_STEPS + expectedTransfers;
+  const totalExpectedSteps =
+    GLOBAL_EXPECTED_STEPS + expectedTransfers * EMPLOYEE_EVENT_COUNT;
 
   const progress = completed
     ? 100
@@ -102,12 +129,19 @@ export default function PayrollModal({ start }: PayrollModalProps) {
   const getEventLabel = (event: string): string => {
     const labels: Record<string, string> = {
       INIT: "Initializing Payroll",
-      EMPLOYEE_START: "Preparing Employee Transfers",
       BALANCE_OK: "Treasury Balance Verified",
-      TRANSFER_PROGRESS: "Paying Employees",
-      PAYROLL_COMPLETED: "Payroll Completed",
+      PAYROLL_START: "Starting Payroll",
+
+      EMPLOYEE_START: "Employee Processing Started",
+      CROSSCHAIN_TRANSFER: "Cross-chain Transfer Initiated",
+      MINT_TX_SUBMITTED: "Mint Transaction Submitted",
+      EMPLOYEE_COMPLETED: "Employee Paid Successfully",
+
+      PAYROLL_COMPLETED: "Payroll Calculations Completed",
+      PAYROLL_COMPLETE: "Payroll Fully Settled",
       FAILED: "Payroll Failed",
     };
+
     return labels[event] || event;
   };
   useEffect(() => {
@@ -116,12 +150,11 @@ export default function PayrollModal({ start }: PayrollModalProps) {
     const timer = setTimeout(() => {
       const [next, ...rest] = eventQueue;
 
-      if (next.event === "TRANSFER_PROGRESS") {
+      if (next.event === "EMPLOYEE_COMPLETED") {
         setEmployeeTransfers((prev) => [...prev, next]);
       } else {
         setCheckpoints((prev) => [...prev, next]);
       }
-
       setEventQueue(rest);
     }, 500);
 
