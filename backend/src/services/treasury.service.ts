@@ -252,8 +252,7 @@ async function getUnifiedAvailableBalanceOfWallet(client: any, walletId: string)
 
 }
 async function getBalance() {
-    const wallets = await prisma.wallet.findMany();
-    const walletId = wallets[0].id;
+    const walletId = process.env.ARC_TESTNET_WALLET_ID || '';
 
     const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
 
