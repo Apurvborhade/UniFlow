@@ -47,10 +47,14 @@ async function runPayroll(req: any, res: any, next: any) {
                 `${BACKEND_URL}/payroll/balance`,
             );
 
-            const totalAvailableBalance = Object.values(unifiedBalance.balances)
-                .reduce((sum: number, balance: any) => sum + parseFloat(balance), 0);
+            console.log(Object.entries(unifiedBalance.balances))
+            const totalAvailableBalance: [string, any]  = Object.entries(unifiedBalance.balances).find((balance: any) => balance[0] === "Arc Testnet") as [string, any];
+          
 
-            if (totalAvailableBalance >= totalSalary) {
+            console.log(`Total Available Balance : ${totalAvailableBalance[1]} and required is ${totalSalary}`)
+
+
+            if (totalAvailableBalance[1] >= totalSalary) {
                 send("BALANCE_OK", {
                     availableBalance: totalAvailableBalance,
                     requiredBalance: totalSalary,
@@ -136,9 +140,8 @@ async function getUnifiedBalance(req: any, res: any, next: any) {
         for (const chain of selectedChains) {
             const config = CHAIN_CONFIG[chain];
             const USDC_ADDRESS = config.usdc;
-            console.log(`Using USDC address: ${USDC_ADDRESS}`);
-            const WALLET_ID = config.walletId;
 
+            const WALLET_ID = config.walletId;
             balances = await getUnifiedAvailableBalanceOfWallet(circleDeveloperSdkClient, WALLET_ID!);
 
         }

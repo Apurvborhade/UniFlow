@@ -31,135 +31,82 @@ async function getUSDCBalance(client: any, walletId: string) {
     return Number(usdc?.amount || 0);
 }
 
-async function depositToGateway(chains: string[] | undefined, totalSalary?: number) {
-    if (!totalSalary || totalSalary <= 0) {
-        throw new Error("totalSalary must be provided");
-    }
-    // Allows for chain selection via CLI arguments
-    const selectedChains = parseSelectedChains(chains);
-    console.log(
-        `Depositing to: ${selectedChains.map((chain) => CHAIN_CONFIG[chain].chainName).join(", ")}`,
+async function depositToGateway(
+  _chains: string[] | undefined,
+  totalSalary?: number
+) {
+  if (!totalSalary || totalSalary <= 0) {
+    throw new Error("totalSalary must be provided");
+  }
+
+  const chain = "arc";
+  const config = CHAIN_CONFIG[chain];
+
+  console.log(`Depositing ONLY to ${config.chainName}`);
+
+  const client = initiateDeveloperControlledWalletsClient({
+    apiKey: CIRCLE_API_KEY!,
+    entitySecret: ENTITY_SECRET!,
+  });
+
+  console.log("\nFetching ARC USDC balance...\n");
+
+  const balance = await getUSDCBalance(client, config.walletId);
+
+  console.log(`${config.chainName}: ${balance} USDC`);
+  console.log(`Total salary required: ${totalSalary} USDC`);
+
+  if (balance < totalSalary) {
+    throw new Error(
+      `Insufficient ARC balance.\nAvailable: ${balance} USDC\nRequired: ${totalSalary} USDC`
     );
+  }
 
-    // Initiate wallets client
-    const client = initiateDeveloperControlledWalletsClient({
-        apiKey: CIRCLE_API_KEY!,
-        entitySecret: ENTITY_SECRET!,
-    });
+  const depositAmount = Number(totalSalary.toFixed(6));
 
-
-    const chainBalances: Record<string, number> = {};
-    let totalBalance = 0;
-
-    console.log("\nFetching USDC balances...\n");
+  console.log(
+    `\nApproving ${depositAmount} USDC for Gateway Wallet ${GATEWAY_WALLET_ADDRESS}`
+  );
 
 
-    for (const chain of selectedChains) {
-        const config = CHAIN_CONFIG[chain];
+  const approveTx = await client.createContractExecutionTransaction({
+    walletId: config.walletId,
+    contractAddress: config.usdc,
+    abiFunctionSignature: "approve(address,uint256)",
+    abiParameters: [
+      GATEWAY_WALLET_ADDRESS,
+      parseBalance(depositAmount.toString()).toString(),
+    ],
+    fee: { type: "level", config: { feeLevel: "MEDIUM" } },
+  });
 
-        const balance = await getUSDCBalance(
-            client,
-            config.walletId
-        );
+  const approveTxId = approveTx.data?.id;
+  if (!approveTxId) throw new Error("Failed to create approve transaction");
 
-        chainBalances[chain] = balance;
-        totalBalance += balance;
+  await waitForTxCompletion(client, approveTxId, "USDC approve");
 
-        console.log(
-            `${config.chainName}: ${balance} USDC`
-        );
-    }
-    console.log(`\nTotal treasury balance: ${totalBalance} USDC`);
-    console.log(`Total salary required: ${totalSalary} USDC`);
-
-    if (totalBalance < totalSalary) {
-        throw new Error(
-            `Insufficient treasury balance.\nAvailable: ${totalBalance} USDC\nRequired: ${totalSalary} USDC`
-        );
-    }
-
-    const distribution: Record<string, number> = {};
-
-    console.log("\nDistribution:");
-
-    for (const chain of selectedChains) {
-        const balance = chainBalances[chain];
-
-        const amount = Number(
-            ((balance / totalBalance) * totalSalary).toFixed(6)
-        );
-
-        distribution[chain] = amount;
-
-        console.log(
-            `${CHAIN_CONFIG[chain].chainName}: ${amount} USDC`
-        );
-    }
-
-    // Process each selected chain
-    for (const chain of selectedChains) {
-        const config = CHAIN_CONFIG[chain];
-        const USDC_ADDRESS = config.usdc;
-        const WALLET_ID = config.walletId;
-        const depositAmount = distribution[chain];
-
-        if (!depositAmount || depositAmount <= 0) {
-            console.log(
-                `Skipping ${config.chainName} (deposit amount is zero)`
-            );
-            continue;
-        }
-        console.log(`\n--- ${config.chainName} ---`);
-
-        console.log(
-            `Approving ${depositAmount} USDC for spender ${GATEWAY_WALLET_ADDRESS}`,
-        );
+  console.log(`Depositing ${depositAmount} USDC to Gateway (ARC)`);
 
 
+  const depositTx = await client.createContractExecutionTransaction({
+    walletId: config.walletId,
+    contractAddress: GATEWAY_WALLET_ADDRESS,
+    abiFunctionSignature: "deposit(address,uint256)",
+    abiParameters: [
+      config.usdc,
+      parseBalance(depositAmount.toString()).toString(),
+    ],
+    fee: { type: "level", config: { feeLevel: "MEDIUM" } },
+  });
 
+  const depositTxId = depositTx.data?.id;
+  if (!depositTxId) throw new Error("Failed to create deposit transaction");
 
-        const approveTx = await client.createContractExecutionTransaction({
-            walletId: WALLET_ID!,
-            contractAddress: USDC_ADDRESS,
-            abiFunctionSignature: "approve(address,uint256)",
-            abiParameters: [
-                GATEWAY_WALLET_ADDRESS,
-                parseBalance(depositAmount.toString()).toString(),
-            ],
-            fee: { type: "level", config: { feeLevel: "MEDIUM" } },
-        });
+  await waitForTxCompletion(client, depositTxId, "Gateway deposit");
 
-        const approveTxId = approveTx.data?.id;
-        if (!approveTxId) throw new Error("Failed to create approve transaction");
+  console.log(" Deposit complete. Unified Gateway balance updated.\n");
 
-        await waitForTxCompletion(client, approveTxId, "USDC approve");
-
-        // Call deposit method on the Gateway Wallet contract
-        console.log(`Depositing ${depositAmount} USDC to Gateway Wallet`);
-
-        const depositTx = await client.createContractExecutionTransaction({
-            walletId: WALLET_ID!,
-            contractAddress: GATEWAY_WALLET_ADDRESS,
-            abiFunctionSignature: "deposit(address,uint256)",
-            abiParameters: [
-                USDC_ADDRESS,
-                parseBalance(depositAmount.toString()).toString(),
-            ],
-            fee: { type: "level", config: { feeLevel: "MEDIUM" } },
-        });
-
-        const depositTxId = depositTx.data?.id;
-        if (!depositTxId) throw new Error("Failed to create deposit transaction");
-
-        await showUnifiedAvailableBalance(client, WALLET_ID!);
-        await waitForTxCompletion(client, depositTxId, "Gateway deposit");
-        const txInfo = await client.getTransaction({ id: depositTxId });
-        console.log("Deposit Tx Info: ", txInfo.data)
-    }
-
-    console.log(
-        "Transaction complete. Once finality is reached, Gateway credits your unified USDC balance.",
-    );
+  await showUnifiedAvailableBalance(client, config.walletId);
 }
 
 const CHAINS = {
@@ -187,7 +134,7 @@ async function showUnifiedAvailableBalance(client: any, walletId: string) {
     const { data } = await client.getWallet({ id: walletId });
     const depositor = data?.wallet?.address;
     if (!depositor) throw new Error("Could not resolve wallet address");
-    console.log(`Depositor address: ${depositor}`);
+
 
     // Query Gateway for the available balance recorded by the system
     const response = await fetch(`${GATEWAY_API}/balances`, {
@@ -223,7 +170,7 @@ async function getUnifiedAvailableBalanceOfWallet(client: any, walletId: string)
     const { data } = await client.getWallet({ id: walletId });
     const depositor = data?.wallet?.address;
     if (!depositor) throw new Error("Could not resolve wallet address");
-    console.log(`Depositor address: ${depositor}`);
+
 
     // Query Gateway for the available balance recorded by the system
     const response = await fetch(`${GATEWAY_API}/balances`, {
