@@ -23,6 +23,9 @@ async function createEmployee(req: any, res: any, next: any) {
         if (!name || !salaryAmount || !preferredChain || !status) {
             throw new AppError('Missing required fields: name, salaryAmount, preferredChain, status', 400);
         }
+        if(preferredChain !== "ETH_SEPOLIA" && preferredChain !== "BASE_SEPOLIA" && preferredChain !== "AVAX_FUJI" && preferredChain !== "ARC_TESTNET"){
+            throw new AppError('Invalid preferredChain. Must be one of: ETH_SEPOLIA, BASE_SEPOLIA, AVAX_FUJI, ARC_TESTNET', 400);
+        }
         const newEmployee = await prisma.employee.create({
             data: {
                 name,

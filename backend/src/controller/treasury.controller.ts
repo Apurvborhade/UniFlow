@@ -1,15 +1,16 @@
-import { erc20Abi } from 'viem';
+import { erc20Abi, formatUnits } from 'viem';
 import { prisma } from '../lib/prisma.js';
 import { account, publicClient, walletClient } from '../lib/walletClient.js';
 import { getEmployees } from '../services/employees.service.js';
 import { depositToGateway, getBalance, getUnifiedAvailableBalanceOfWallet } from '../services/treasury.service.js';
 import { parseBalance, waitForTxCompletion } from '../utils/arc/transferHelper.js';
 import { getDeveloperControlledWalletsClient } from '../utils/circle-utils.js'
-import { ARC_USDC_TESTNET_ADDRESS, USYC_TELLER_ADDRESS, USYC_WHITELISTED_WALLET } from '../utils/constants.js';
+import { ARC_USDC_TESTNET_ADDRESS, USYC_ADDRESS, USYC_TELLER_ADDRESS, USYC_WHITELISTED_WALLET } from '../utils/constants.js';
 import { USYC_TELLER_ABI } from '../utils/USYCTellerAbi.js';
 import { getUnifiedBalance } from './payroll.controller.js';
 import { arcTestnet } from 'viem/chains'
 import { deposit } from 'viem/zksync';
+import { usycAbi } from '../utils/USYCAbi.js';
 const circleDeveloperSdkClientPromise = getDeveloperControlledWalletsClient();
 
 async function createTreasury(req: any, res: any, next: any) {
@@ -44,8 +45,18 @@ async function createTreasury(req: any, res: any, next: any) {
 async function getTreasuryBalance(req: any, res: any, next: any) {
     try {
         const balanceResponse = await getBalance();
+        const availableUsdBalanceInTreasury = balanceResponse.data?.tokenBalances?.find((token: any) => token.token.symbol === "USDC" || token.token.symbol === "USDC-TESTNET");
 
-        res.send({ balance: balanceResponse.data });
+        const usdyBalance = await publicClient.readContract({
+            address: USYC_ADDRESS as `0x${string}`,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [account.address as `0x${string}`],
+        })
+        const rawBalance = usdyBalance
+        const balance = formatUnits(rawBalance, 6);
+        console.log(usdyBalance)
+        res.send({ trasuryBalance: availableUsdBalanceInTreasury,usdyBalance: balance });
     } catch (error) {
         next(error)
     }
@@ -147,6 +158,7 @@ async function depositForYieldFarmingController(req: any, res: any, next: any) {
 async function redeemFromYieldFarmingController(req: any, res: any, next: any) {
     const { redeemAmount } = req.body;
     try {
+        console.log(redeemAmount)
         const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
         const redeemTx = await walletClient.writeContract({
             chain: arcTestnet,
