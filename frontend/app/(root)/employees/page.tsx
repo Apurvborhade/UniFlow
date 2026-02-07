@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "@/components/Navbar";
-
+import EmployeeTable from "@/components/Employesstable";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -14,7 +14,7 @@ export default function EmployeesPage() {
   const fetchEmployees = async () => {
     setLoading(true);
     const res = await axios.get(
-      "https://uniflow-backend.apurvaborhade.dev/api/employees"
+      "https://uniflow-backend.apurvaborhade.dev/api/employees",
     );
     setEmployees(res.data.data);
     setLoading(false);
@@ -25,9 +25,7 @@ export default function EmployeesPage() {
   }, []);
 
   return (
-
     <main className="max-w-6xl mx-auto px-6 py-6">
-     
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Employees</h1>
         <button
@@ -40,10 +38,20 @@ export default function EmployeesPage() {
           + Add Employee
         </button>
       </div>
-
- 
-
-       
+      <EmployeeTable
+        employees={employees}
+        loading={loading}
+        onEdit={(emp):any => {
+          setEditingEmployee(emp);
+          setOpenModal(true);
+        }}
+        onDelete={async (id) => {
+          await axios.delete(
+            `https://uniflow-backend.apurvaborhade.dev/api/employees/${id}`,
+          );
+          fetchEmployees();
+        }}
+      />
     </main>
   );
 }
