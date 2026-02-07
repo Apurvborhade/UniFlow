@@ -11,7 +11,7 @@ type Checkpoint = {
 };
 
 type PayrollModalProps = {
-  start?: boolean; 
+  start?: boolean;
 };
 
 export default function PayrollModal({ start }: PayrollModalProps) {
@@ -23,6 +23,8 @@ export default function PayrollModal({ start }: PayrollModalProps) {
   const [hasError, setHasError] = useState(false);
   const evtSourceRef = useRef<EventSource | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [expectedTransfers, setExpectedTransfers] = useState<number>(0);
+  const [eventQueue, setEventQueue] = useState<Checkpoint[]>([]);
 
   const startPayroll = () => {
     setShowCard(true);
@@ -38,17 +40,8 @@ export default function PayrollModal({ start }: PayrollModalProps) {
     evtSourceRef.current = evtSource;
 
     const addCheckpoint = (event: string, data: any) => {
-      if (event === "TRANSFER_PROGRESS") {
-        setEmployeeTransfers((prev) => [
-          ...prev,
-          { event, message: data?.message || "", data },
-        ]);
-      } else {
-        setCheckpoints((prev) => [
-          ...prev,
-          { event, message: data?.message || "", data },
-        ]);
-      }
+      setEventQueue((q) => [...q, { event, data }]);
+      console.log(`Event: ${event}`, data);
 
       if (event === "FAILED") {
         setCompleted(true);
@@ -59,6 +52,7 @@ export default function PayrollModal({ start }: PayrollModalProps) {
       }
 
       if (event === "PAYROLL_COMPLETED") {
+        setExpectedTransfers(data?.employeeCount || employeeTransfers.length);
         setCompleted(true);
         setRunning(false);
         evtSource.close();
@@ -67,10 +61,8 @@ export default function PayrollModal({ start }: PayrollModalProps) {
 
     const events = [
       "INIT",
-      "FETCH_EMPLOYEES",
-      "CALCULATE_TOTAL",
-      "CHECK_FUNDS",
-      "TRANSFER_FUNDS",
+      "EMPLOYEE_START",
+      "BALANCE_OK",
       "TRANSFER_PROGRESS",
       "PAYROLL_COMPLETED",
       "FAILED",
@@ -97,23 +89,44 @@ export default function PayrollModal({ start }: PayrollModalProps) {
   useEffect(() => {
     return () => evtSourceRef.current?.close();
   }, []);
+  const BASE_STEPS = 4;
+
   const totalSteps = checkpoints.length + employeeTransfers.length;
-  const totalExpectedSteps = 6 + employeeTransfers.length;
-  const progress = Math.min((totalSteps / totalExpectedSteps) * 100, 100);
+
+  const totalExpectedSteps = BASE_STEPS + expectedTransfers;
+
+  const progress = completed
+    ? 100
+    : Math.min((totalSteps / totalExpectedSteps) * 100, 95);
 
   const getEventLabel = (event: string): string => {
-    const labels: { [key: string]: string } = {
+    const labels: Record<string, string> = {
       INIT: "Initializing Payroll",
-      FETCH_EMPLOYEES: "Fetching Employees",
-      CALCULATE_TOTAL: "Calculating Totals",
-      CHECK_FUNDS: "Checking Funds",
-      TRANSFER_FUNDS: "Processing Transfers",
-      TRANSFER_PROGRESS: "Transferring to Employees",
+      EMPLOYEE_START: "Preparing Employee Transfers",
+      BALANCE_OK: "Treasury Balance Verified",
+      TRANSFER_PROGRESS: "Paying Employees",
       PAYROLL_COMPLETED: "Payroll Completed",
       FAILED: "Payroll Failed",
     };
     return labels[event] || event;
   };
+  useEffect(() => {
+    if (eventQueue.length === 0) return;
+
+    const timer = setTimeout(() => {
+      const [next, ...rest] = eventQueue;
+
+      if (next.event === "TRANSFER_PROGRESS") {
+        setEmployeeTransfers((prev) => [...prev, next]);
+      } else {
+        setCheckpoints((prev) => [...prev, next]);
+      }
+
+      setEventQueue(rest);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [eventQueue]);
 
   const getEventIcon = (
     event: string,
@@ -199,7 +212,7 @@ export default function PayrollModal({ start }: PayrollModalProps) {
                 </div>
                 <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                   <div
-                    className="h-2.5 bg-blue-600 rounded-full transition-all duration-300"
+                    className="h-2.5 bg-blue-600 rounded-full transition-all duration-700 ease-out"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -211,9 +224,10 @@ export default function PayrollModal({ start }: PayrollModalProps) {
                 </h3>
                 <div className="space-y-3">
                   {checkpoints.map((cp, idx) => {
-                    const isActive =
-                      !completed && idx === checkpoints.length - 1;
-                    const isCompleted = completed || checkpoints.length > idx;
+                    const isCompleted =
+                      idx < checkpoints.length - 1 || completed;
+                    const isActive = idx === checkpoints.length - 1 && running;
+
                     return (
                       <div
                         key={idx}

@@ -132,12 +132,10 @@ const Dashboard = () => {
         const response = await axios.get(
           "https://uniflow-backend.apurvaborhade.dev/api/payroll/balance",
         );
-        const balances = response.data.balances;
-        const totalPayrollFunds = Object.values(balances)
-          .map((val: unknown) => Number(val as string) || 0)
-          .reduce((acc, curr) => acc + curr, 0);
+        const balances = Number(response.data.balances["Arc Testnet"])
+        
 
-        setPayrollReserve(totalPayrollFunds);
+        setPayrollReserve(balances);
       } catch (error) {
         console.error("Error fetching payroll reserve:", error);
       }
