@@ -12,6 +12,41 @@ export default function PayrollsPage() {
   const [employeeCount, setEmployeeCount] = useState<number | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [batchdate, setBatchDate] = useState<Date | null>(null);
+  type PayrollHistoryItem = {
+    id: string;
+    employeeId: string;
+    amount: string;
+    createdAt: string;
+    transactionId: string;
+  };
+
+  const [payrollHistory, setPayrollHistory] = useState<PayrollHistoryItem[]>(
+    [],
+  );
+  useEffect(() => {
+    const fetchPayrollHistory = async () => {
+      try {
+        const res = await axios.get(
+          "https://uniflow-backend.apurvaborhade.dev/api/payroll/history",
+        );
+
+        setPayrollHistory(res.data.payrolls);
+        console.log("Payroll history:", res.data.payrolls);
+      } catch (err) {
+        console.error("Failed to fetch payroll history", err);
+      }
+    };
+
+    fetchPayrollHistory();
+  }, []);
+  const employeeMap = employees.reduce(
+    (acc, emp) => {
+      acc[emp.id] = emp;
+      return acc;
+    },
+    {} as Record<string, any>,
+  );
+
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -229,10 +264,10 @@ export default function PayrollsPage() {
       <div className="bg-white w-full border border-black rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
         <div className="mb-6">
           <h2 className="text-lg sm:text-xl font-bold text-black mb-2">
-            Payroll Batch
+            Payroll Batch History
           </h2>
           <p className="text-xs sm:text-sm text-gray-600">
-            Review and approve recipient list before distribution
+            recipient list after payroll distribution with transaction details 
           </p>
         </div>
 
@@ -241,90 +276,115 @@ export default function PayrollsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
-                  Recipient
-                </th>
-                <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
-                  Wallet
-                </th>
-                <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
-                  Amount(USD)
-                </th>
-                <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
-                  Chain
-                </th>
-                <th className="text-left text-xs font-semibold text-black uppercase tracking-wider py-3">
-                  Status
-                </th>
+                <th>Recipient</th>
+                <th>Wallet</th>
+                <th>Amount</th>
+                <th>Chain</th>
+                <th>Status</th>
               </tr>
             </thead>
+
             <tbody>
-              {employees.map((batch, idx) => (
-                <tr
-                  key={idx}
-                  className="border-b border-gray-200 hover:bg-gray-50"
-                >
-                  <td className="py-4 text-sm text-gray-900">{batch.name}</td>
-                  <td className="py-4 text-sm text-gray-600 font-mono">
-                    {batch.walletAddress}
-                  </td>
-                  <td className="py-4 text-sm text-gray-900">
-                    {batch.salaryAmount}
-                  </td>
-                  <td className="py-4 text-sm text-gray-600">
-                    {batch.preferredChain}
-                  </td>
-                  <td className="py-4">
-                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                      {batch.status}
-                    </span>
+              {payrollHistory.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className=" text-center text-sm text-gray-500"
+                  >
+                    No payroll history found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                payrollHistory.map((item) => {
+                  const employee = employeeMap[item.employeeId];
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className="border-b border-gray-200 hover:bg-gray-50"
+                    >
+                      <td className="py-4 px-4 text-center">
+                        {employee?.name}
+                      </td>
+                      <td className="py-4 font-mono text-center">
+                        {employee?.walletAddress?.slice(0, 6)}...
+                        {employee?.walletAddress?.slice(-4)}
+                      </td>
+                      <td className="py-4 text-center">{item.amount} USDC</td>
+                      <td className="py-4 text-center">
+                        {employee?.preferredChain}
+                      </td>
+                      <td className="py-4 text-center">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                          Completed
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Mobile Card View */}
         <div className="sm:hidden space-y-4 mb-6">
-          {employees.map((batch, idx) => (
-            <div
-              key={idx}
-              className="bg-gray-50 rounded-lg p-4 border border-gray-200"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">
-                    {batch.recipient}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1 font-mono">
-                    {batch.wallet}
-                  </p>
-                </div>
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                  {batch.status}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <p className="text-gray-600">{batch.chain}</p>
-                <p className="font-bold text-gray-900">{batch.amount}</p>
-              </div>
-            </div>
-          ))}
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th>Recipient</th>
+                <th>Wallet</th>
+                <th>Amount</th>
+                <th>Chain</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {payrollHistory.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className=" text-center text-sm text-gray-500"
+                  >
+                    No payroll history found
+                  </td>
+                </tr>
+              ) : (
+                payrollHistory.map((item) => {
+                  const employee = employeeMap[item.employeeId];
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className="border-b border-gray-200 hover:bg-gray-50"
+                    >
+                      <td className="py-4 px-4 text-center">
+                        {employee?.name}
+                      </td>
+                      <td className="py-4 font-mono text-center">
+                        {employee?.walletAddress?.slice(0, 6)}...
+                        {employee?.walletAddress?.slice(-4)}
+                      </td>
+                      <td className="py-4 text-center">{item.amount} USDC</td>
+                      <td className="py-4 text-center">
+                        {employee?.preferredChain}
+                      </td>
+                      <td className="py-4 text-center">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                          Completed
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Total Distribution */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t border-gray-200">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Total Distribution</p>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {payrollData.totalProcessed} USDC
-            </p>
-          </div>
-          <button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-            Approve & Execute
-          </button>
-        </div>
+        
+        
       </div>
       <div className="bg-white border w-full border-black rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8">
         <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
