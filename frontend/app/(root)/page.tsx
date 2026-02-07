@@ -8,7 +8,7 @@ import axios from "axios";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 import PayrollModal from "@/components/payrollcard";
 
@@ -26,6 +26,9 @@ const Dashboard = () => {
   const [trigger, setTrigger] = useState(false);
   const [depositLoading, setDepositLoading] = useState(false);
   const { isConnected, chainId } = useAccount();
+  const [payrollReserve, setPayrollReserve] = useState(0);
+  const [availableFunds, setAvailableFunds] = useState<number>(0);
+  const [YeildVault, setYeildVault] = useState(0);
 
   async function approveUSDC(
     chainId: number,
@@ -122,7 +125,7 @@ const Dashboard = () => {
   }, [success, error]);
 
   const APY = 0.085;
-  const projectedMonthly = Math.round((totalTreasury * APY) / 12);
+  
   useEffect(() => {
     const fetchTreasury = async () => {
       try {
@@ -130,17 +133,41 @@ const Dashboard = () => {
           "https://uniflow-backend.apurvaborhade.dev/api/payroll/balance",
         );
         const balances = response.data.balances;
-        const totalFunds = Object.values(balances)
+        const totalPayrollFunds = Object.values(balances)
           .map((val: unknown) => Number(val as string) || 0)
           .reduce((acc, curr) => acc + curr, 0);
 
-        setTotalTreasury(totalFunds);
+        setPayrollReserve(totalPayrollFunds);
+        setTotalTreasury(totalTreasury + totalPayrollFunds);
       } catch (error) {
-        console.error("Error fetching treasury balance:", error);
+        console.error("Error fetching payroll reserve:", error);
       }
     };
 
     fetchTreasury();
+  }, []);
+  useEffect(() => {
+    const fetchAvailableFunds = async () => {
+      try {
+        const response = await axios.get(
+          "https://uniflow-backend.apurvaborhade.dev/api/treasury/balance",
+        );
+
+        const amountStr = response.data.trasuryBalance?.amount;
+        const payrollVaultAmountStr = response.data.usdyBalance;
+
+        const payrollVaultAmount = Number(payrollVaultAmountStr);
+        setYeildVault(payrollVaultAmount);
+
+        const AvailableFunds = Number(amountStr);
+        
+        setAvailableFunds(AvailableFunds);
+      } catch (error) {
+        console.error("Error fetching available funds:", error);
+      }
+    };
+
+    fetchAvailableFunds();
   }, []);
 
   const formattedInflow = useTransform(
@@ -181,7 +208,11 @@ const Dashboard = () => {
 
             <div className="flex gap-3">
               <PayrollModal />
-              <Button onClick={onDepositClick} disabled={loading}>
+              <Button
+                onClick={onDepositClick}
+                disabled={loading}
+                className="bg-black cursor-pointer hover:scale-105 hover:bg-black text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base"
+              >
                 {loading ? "Depositing..." : "+ Deposit Funds"}
               </Button>
             </div>
@@ -190,7 +221,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 gap-8">
             <div>
               <p className="text-gray-600 text-[17px] mb-2">
-                Available for Deployment
+                Available for Yeild
               </p>
               <motion.span
                 initial={{ opacity: 0, y: "30%" }}
@@ -198,14 +229,19 @@ const Dashboard = () => {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="block"
               >
-                <p className="text-2xl font-bold text-black">$125,500</p>
+                <p className="text-2xl font-bold text-black">
+                  {availableFunds.toLocaleString(undefined, {
+                    maximumFractionDigits: 3,
+                  })}
+                </p>
+                <span className="text-gray-500 text-sm">USDC</span>
               </motion.span>
             </div>
             <div className="text-right">
-              <p className="text-gray-600 text-[17px] mb-2">
-                Reserved for Payroll
+              <p className="text-gray-600 text-[17px] mb-2">Payroll Reserve</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {payrollReserve.toLocaleString()}
               </p>
-              <p className="text-2xl font-bold text-blue-600">$60,000</p>
             </div>
           </div>
         </div>
@@ -283,7 +319,7 @@ const Dashboard = () => {
 
           <div className="bg-white border border-gray-700 rounded-xl p-6 flex flex-col justify-between">
             <h3 className="text-lg font-semibold text-black">
-              Projected Yield
+              Yield Vault
             </h3>
 
             <motion.span
@@ -293,12 +329,15 @@ const Dashboard = () => {
               className="block text-3xl font-bold text-blacktext-3xl text-black"
             >
               <p className="text-3xl font-bold text-black">
-                ${projectedMonthly.toLocaleString()}
+                {YeildVault.toLocaleString(undefined, { maximumFractionDigits: 3 })}
+                {" "}
               </p>
+              <div className="text-[17px] font-semibold text-gray-600">usdy</div>
+              
             </motion.span>
 
             <p className="text-gray-600 text-sm mt-1">
-              Estimated monthly earnings
+              Capital Deployed for Yield
             </p>
 
             <div className="mt-6 flex items-center justify-between text-sm">
@@ -307,7 +346,7 @@ const Dashboard = () => {
             </div>
 
             <div className="mt-2 text-xs text-gray-500">
-              Projection based on current treasury balance
+              Yield rate applied to deployed liquidity
             </div>
           </div>
         </div>

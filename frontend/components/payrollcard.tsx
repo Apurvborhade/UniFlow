@@ -141,7 +141,7 @@ export default function PayrollModal({ start }: PayrollModalProps) {
       <Button
         onClick={startPayroll}
         disabled={running}
-        className="px-6 py-2.5 rounded-lg font-semibold text-white transition-all duration-200 flex items-center gap-2"
+        className="px-6 py-2.5 rounded-lg font-semibold hover:scale-105 text-white transition-all duration-200 flex items-center gap-2"
         style={{
           backgroundColor: running ? "#9CA3AF" : "#000000",
           cursor: running ? "not-allowed" : "pointer",
