@@ -1,6 +1,6 @@
 # UniFlow
 
-UniFlow is a cross-chain payroll and treasury management platform that allows organizations to deposit USDC once, optionally earn yield on idle treasury funds, and distribute salaries to employees across multiple blockchains. It leverages Circle’s onchain infrastructure and Arc to handle custody, yield, cross-chain settlement, and automated payroll execution — without deploying custom smart contracts.
+UniFlow is a cross-chain payroll and treasury management platform that allows organizations to deposit USDC once, optionally earn yield on idle treasury funds, and distribute salaries to employees across multiple blockchains. It leverages Circle’s onchain infrastructure and Arc to handle custody, yield, cross-chain settlement, and automated payroll execution
 
 ---
 
@@ -37,7 +37,7 @@ data via backend       (USYC)                   + mint                  blockcha
 ---
 
 
-## Architecture
+## Architecture Overview
 ```
 +---------------------------------------------------+
 |                   UniFlow Backend                 |
@@ -69,6 +69,11 @@ data via backend       (USYC)                   + mint                  blockcha
 +--------------------+        +-------------------+
 
 ```
+### Architecture Diagram
+
+<img width="2478" height="2125" alt="image" src="https://github.com/user-attachments/assets/980223c8-e02a-4dde-86af-a5d090c49b68" />
+
+
 ---
 
 ## Cross-Chain Payroll Execution
