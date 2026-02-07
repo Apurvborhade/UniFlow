@@ -23,10 +23,11 @@ export default function EmployeeFormModal({
     try {
       setLoading(true);
       if (employee) {
-        await axios.put(
-          "https://uniflow-backend.apurvaborhade.dev/api/employees",
+        const res = await axios.put(
+          `https://uniflow-backend.apurvaborhade.dev/api/employees/update/${employee.id}`,
           { ...form, id: employee.id }
         );
+        onSuccess(res.data.data)
       } else {
         
         await axios.post(

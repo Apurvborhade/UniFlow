@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Navbar from "@/components/Navbar";
 import EmployeeTable from "@/components/Employesstable";
 import EmployeeFormModal from "../../../components/employeeFormModel";
+import { toast } from "sonner";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -20,10 +22,40 @@ export default function EmployeesPage() {
     setEmployees(res.data.data);
     setLoading(false);
   };
+  const handleEditEmployee = (employee: any) => {
+    setEditingId(employee.id);
+    setEditingEmployee(employee);
+    setOpenModal(true);
+  };
 
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  const handleSuccess = (updatedEmployee?: any) => {
+    if (editingId && updatedEmployee) {
+      setEmployees((prev) =>
+        prev.map((e) => (e.id === updatedEmployee.id ? updatedEmployee : e)),
+      );
+    } else {
+      fetchEmployees();
+    }
+
+    setEditingId(null);
+    setEditingEmployee(null);
+    setOpenModal(false);
+  };
+  const handleDeleteEmployee = async (id: string) => {
+    try {
+      await axios.delete(
+        `https://uniflow-backend.apurvaborhade.dev/api/employees/delete/${id}`,
+      );
+      setEmployees((prev) => prev.filter((e) => e.id !== id));
+      toast.success("Deleted Employee Successfully")
+    } catch {
+      toast.error("Failed to delete employee");
+    }
+  };
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-6">
@@ -31,7 +63,9 @@ export default function EmployeesPage() {
         <h1 className="text-2xl font-bold">Employees</h1>
         <button
           onClick={() => {
+            setEditingId(null);
             setEditingEmployee(null);
+            setOpenModal(true);
             setOpenModal(true);
           }}
           className="bg-black text-white px-5 py-2 rounded-lg"
@@ -42,22 +76,14 @@ export default function EmployeesPage() {
       <EmployeeTable
         employees={employees}
         loading={loading}
-        onEdit={(emp :any) => {
-          setEditingEmployee(emp);
-          setOpenModal(true);
-        }}
-        onDelete={async (id :any ) => {
-          await axios.delete(
-            `https://uniflow-backend.apurvaborhade.dev/api/employees/${id}`,
-          );
-          fetchEmployees();
-        }}
+        onEdit={handleEditEmployee}
+        onDelete={handleDeleteEmployee}
       />
-         {openModal && (
+      {openModal && (
         <EmployeeFormModal
           employee={editingEmployee}
           onClose={() => setOpenModal(false)}
-          onSuccess={fetchEmployees}
+          onSuccess={handleSuccess}
         />
       )}
     </main>

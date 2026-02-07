@@ -34,7 +34,7 @@ export default function EmployeeTable({
           </thead>
 
           <tbody>
-            {employees.map((employee:any) => (
+            {employees.map((employee: any) => (
               <tr
                 key={employee.id}
                 className="border-b border-gray-200 hover:bg-gray-50"
@@ -78,14 +78,14 @@ export default function EmployeeTable({
                 <td className="py-4">
                   <div className="flex gap-2">
                     <button
-                      
+                      onClick={() => onEdit(employee)}
                       className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-colors"
                     >
                       Edit
                     </button>
 
                     <button
-                      
+                      onClick={() => onDelete(employee.id)}
                       className="px-3 py-1 bg-red-700 text-white rounded-lg text-xs font-semibold hover:bg-red-800 transition-colors"
                     >
                       Delete
