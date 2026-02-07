@@ -158,6 +158,7 @@ async function depositForYieldFarmingController(req: any, res: any, next: any) {
 async function redeemFromYieldFarmingController(req: any, res: any, next: any) {
     const { redeemAmount } = req.body;
     try {
+        console.log(redeemAmount)
         const circleDeveloperSdkClient = await circleDeveloperSdkClientPromise;
         const redeemTx = await walletClient.writeContract({
             chain: arcTestnet,
