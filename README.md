@@ -37,7 +37,7 @@ data via backend       (USYC)                   + mint                  blockcha
 ---
 
 
-## Architecture
+## Architecture Overview
 ```
 +---------------------------------------------------+
 |                   UniFlow Backend                 |
@@ -69,6 +69,9 @@ data via backend       (USYC)                   + mint                  blockcha
 +--------------------+        +-------------------+
 
 ```
+### Architecture Diagram
+<img width="2478" height="2125" alt="image" src="https://github.com/user-attachments/assets/2be15b96-8bf4-49f7-adff-214e3835a194" />
+
 ---
 
 ## Cross-Chain Payroll Execution
