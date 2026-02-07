@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 import { getEmployees } from "../services/employees.service.js";
 import { transferFunds } from "../services/payroll.service.js";
 import { getBalance, getUnifiedAvailableBalanceOfWallet } from "../services/treasury.service.js";
@@ -27,22 +28,23 @@ async function runPayroll(req: any, res: any, next: any) {
 
         const totalSalary = employees?.reduce((acc: any, employee) => acc + employee.salaryAmount.toNumber(), 0.0);
 
-        const balance = await getBalance();
+        const unifiedBalance = await fetch(`${process.env.DEPLOYED_BACKEND_URL}/payroll/balance`).then(res => res.json()) as any;
 
-        const usdcAmount = balance.data?.tokenBalances?.find((token: any) => token.token.symbol === 'USDC')?.amount || 0;
+        const totalAvailableBalance: number = Object.values(unifiedBalance.balances).reduce((sum: any, balance: any) => sum + parseFloat(balance), 0) as number;
 
-        if (usdcAmount < totalSalary) {
-            send("FAILED", { reason: "INSUFFICIENT_FUNDS" });
+
+
+
+
+        if (totalAvailableBalance < totalSalary) {
+            send("FAILED", { reason: "INSUFFICIENT_FUNDS", availableBalance: totalAvailableBalance, requiredBalance: totalSalary });
             throw new Error('Insufficient funds in treasury to run payroll');
         }
 
-        const tokenBalances = balance.data?.tokenBalances?.reduce((acc: any, token: any) => {
-            acc[token.token.blockchain] = token.amount;
-            return acc;
-        }, {});
+     
 
         // Run transfers
-        await transferFunds(employees, circleDeveloperSdkClient,send);
+        await transferFunds(employees, circleDeveloperSdkClient, send);
         send("PAYROLL_COMPLETED", {
             employeeCount: employees.length,
             totalSalary

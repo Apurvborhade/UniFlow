@@ -11,3 +11,4 @@ export const USYC_WHITELISTED_WALLET = process.env.USYC_WHITELISTED_WALLET || ''
 export const USYC_TELLER_ADDRESS = process.env.USYC_TELLER_ADDRESS || '';
 
 export const ARC_USDC_TESTNET_ADDRESS = process.env.ARCTESTNET_USDC_CONTRACT_ADDRESS || '';
+export const USYC_ADDRESS = process.env.USYC_ADDRESS || '';

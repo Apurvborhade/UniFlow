@@ -53,7 +53,8 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
 
             console.log(`Total available balance across all chains: ${totalBalance}`);
 
-            if (totalBalance < employee.salary) {
+        
+            if (totalBalance < employee.salaryAmount.toNumber()) {
                 throw new AppError(`Insufficient funds to process payroll for employee ${employee.id}. Required: ${employee.salaryAmount}, Available: ${totalBalance}`, 400);
             }
             for (const [chain, balance] of Object.entries(numericBalances)) {
@@ -80,6 +81,7 @@ async function transferFunds(employees: any[], circleDeveloperSdkClient: CircleD
 
                 const availableBalance = parseFloat(unifiedBalanceMapping[chainName]);
 
+                console.log(availableBalance)
 
                 const employeeSalary = employee.salaryAmount.toNumber() || amount;
 
