@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "@/components/Navbar";
 import EmployeeTable from "@/components/Employesstable";
+import EmployeeFormModal from "../../../components/employeeFormModel";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -41,17 +42,24 @@ export default function EmployeesPage() {
       <EmployeeTable
         employees={employees}
         loading={loading}
-        onEdit={(emp):any => {
+        onEdit={(emp :any) => {
           setEditingEmployee(emp);
           setOpenModal(true);
         }}
-        onDelete={async (id) => {
+        onDelete={async (id :any ) => {
           await axios.delete(
             `https://uniflow-backend.apurvaborhade.dev/api/employees/${id}`,
           );
           fetchEmployees();
         }}
       />
+         {openModal && (
+        <EmployeeFormModal
+          employee={editingEmployee}
+          onClose={() => setOpenModal(false)}
+          onSuccess={fetchEmployees}
+        />
+      )}
     </main>
   );
 }
