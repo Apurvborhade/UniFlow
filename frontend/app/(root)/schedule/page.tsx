@@ -11,20 +11,27 @@ export default function PayrollSchedulePage() {
   const [isActive, setIsActive] = useState(true);
   const [schedules, setSchedules] = useState<PayrollSchedule[]>([]);
   const toDateTimeLocal = (iso: string) => (iso ? iso.slice(0, 16) : "");
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
-    axios
-      .get(
-        "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/list",
-      )
-      .then((res) => {
+    const fetchSchedules = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/list",
+        );
         const normalized = res.data.schedules.map((s: any) => ({
           ...s,
           id: String(s.id),
         }));
         setSchedules(normalized);
-      })
-      .catch(() => toast.error("Failed to load schedules"));
+      } catch (err) {
+        toast.error("Failed to load schedules");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
   }, []);
 
   const [showForm, setShowForm] = useState(false);
@@ -39,52 +46,39 @@ export default function PayrollSchedulePage() {
     }
 
     const payload = { frequency, runAt, isActive };
+    setLoading(true);
 
-    if (editingId) {
-      try {
+    try {
+      if (editingId) {
         const res = await axios.put(
           `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/update/${editingId}`,
           payload,
         );
-
         const updated: PayrollSchedule = res.data.schedule;
-
-        console.log("Updated from API:", updated);
-
         setSchedules((prev) =>
           prev.map((s) => (s.id === updated.id ? updated : s)),
         );
-
-        setEditingId(null);
-        setShowForm(false);
         toast.success(res.data.message || "Schedule updated");
-      } catch (err) {
-        console.error("Update failed:", err);
-        toast.error("Update failed");
+        setEditingId(null);
+      } else {
+        const res = await axios.post(
+          "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/create",
+          payload,
+        );
+        const created: PayrollSchedule = res.data.schedule;
+        setSchedules((prev) => [...prev, created]);
+        toast.success("Schedule created successfully");
       }
-      return;
-    }
-
-    try {
-      const res = await axios.post(
-        "https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/create",
-        payload,
-      );
-
-      const created: PayrollSchedule = res.data.schedule;
-
-      setSchedules((prev) => [...prev, created]);
-
-      toast.success("Schedule created successfully");
     } catch (err) {
-      console.error("Create failed:", err);
-      toast.error("Failed to create schedule");
+      console.error(err);
+      toast.error(editingId ? "Update failed" : "Failed to create schedule");
+    } finally {
+      setLoading(false);
+      setRunAt("");
+      setFrequency("MONTHLY");
+      setIsActive(true);
+      setShowForm(false);
     }
-
-    setRunAt("");
-    setFrequency("MONTHLY");
-    setIsActive(true);
-    setShowForm(false);
   };
 
   const handleEditSchedule = async (schedule: PayrollSchedule) => {
@@ -104,38 +98,38 @@ export default function PayrollSchedulePage() {
   };
 
   const toggleScheduleActive = async (id: string) => {
-    
-     
-      const updatedSchedules = schedules.map((schedule) =>
-        schedule.id === id
-          ? { ...schedule, isActive: !schedule.isActive }
-          : schedule,
+    const updatedSchedules = schedules.map((schedule) =>
+      schedule.id === id
+        ? { ...schedule, isActive: !schedule.isActive }
+        : schedule,
+    );
+    setSchedules(updatedSchedules);
+
+    const toggledSchedule = updatedSchedules.find((s) => s.id === id);
+    if (!toggledSchedule) return;
+    setLoading(true);
+
+    try {
+      await axios.put(
+        `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/update/${id}`,
+        { isActive: toggledSchedule.isActive },
       );
-      setSchedules(updatedSchedules);
+      toast.success(
+        toggledSchedule.isActive ? "Schedule activated" : "Schedule paused",
+      );
+    } catch (err) {
+      console.error("Failed to update schedule status:", err);
+      toast.error("Failed to update schedule");
 
-      
-      const toggledSchedule = updatedSchedules.find((s) => s.id === id);
-      if (!toggledSchedule) return;
-
-      try {
-        await axios.put(
-          `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/update/${id}`,
-          { isActive: toggledSchedule.isActive },
-        );
-        toast.success(
-          toggledSchedule.isActive ? "Schedule activated" : "Schedule paused",
-        );
-      } catch (err) {
-        console.error("Failed to update schedule status:", err);
-        toast.error("Failed to update schedule");
-
-        // Revert UI on error
-        setSchedules(schedules);
-      }
-    
+      // Revert UI on error
+      setSchedules(schedules);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteSchedule = (id: string) => {
+    setLoading(true);
     try {
       axios.delete(
         `https://uniflow-backend.apurvaborhade.dev/api/scheduler/payroll/delete/${id}`,
@@ -145,6 +139,8 @@ export default function PayrollSchedulePage() {
     } catch (err) {
       console.error("Delete failed:", err);
       toast.error("Failed to delete schedule");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -180,6 +176,11 @@ export default function PayrollSchedulePage() {
       </div>
 
       <div className="max-w-5xl  mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-8 sm:mt-0">
+        {loading && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-50">
+            <div className="w-12 h-12 border-4 border-white border-t-black rounded-full animate-spin"></div>
+          </div>
+        )}
         {/* Active Schedules List */}
         {schedules.length > 0 ? (
           <>
@@ -242,7 +243,7 @@ export default function PayrollSchedulePage() {
                         <td className="py-4">
                           <div className="flex items-center gap-2">
                             <button
-                            onClick={() => toggleScheduleActive(schedule.id)}
+                              onClick={() => toggleScheduleActive(schedule.id)}
                               className={`w-9 h-5 flex items-center rounded-full p-1 transition-colors ${schedule.isActive ? "bg-green-500" : "bg-gray-300"}`}
                             >
                               <span
@@ -252,7 +253,6 @@ export default function PayrollSchedulePage() {
                             <span className="text-xs font-medium text-gray-700">
                               {schedule.isActive ? "Active" : "Inactive"}
                             </span>
-                           
                           </div>
                         </td>
 

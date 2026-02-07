@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useDeposit } from "@/hooks/useDeposit";
 import { getClientsByChainId } from "@/utils/getClients";
 
-
 import axios from "axios";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
@@ -15,7 +14,7 @@ import PayrollModal from "@/components/payrollcard";
 
 import { erc20Abi, parseUnits } from "viem";
 import { useAccount } from "wagmi";
-import { TREASURY_ADDRESS } from '../../utils/constants'
+import { TREASURY_ADDRESS } from "../../utils/constants";
 const Dashboard = () => {
   const { address } = useAccount();
 
@@ -32,10 +31,9 @@ const Dashboard = () => {
     chainId: number,
     account: `0x${string}`,
     spender: `0x${string}`,
-    amount: string
+    amount: string,
   ) {
-    const { publicClient, walletClient, config } =
-      getClientsByChainId(chainId);
+    const { publicClient, walletClient, config } = getClientsByChainId(chainId);
 
     const value = parseUnits(amount, 6);
 
@@ -50,12 +48,13 @@ const Dashboard = () => {
     return walletClient.writeContract(request);
   }
 
-  async function transfer(chainId: number,
+  async function transfer(
+    chainId: number,
     account: `0x${string}`,
     spender: `0x${string}`,
-    amount: string) {
-    const { publicClient, walletClient, config } =
-      getClientsByChainId(chainId);
+    amount: string,
+  ) {
+    const { publicClient, walletClient, config } = getClientsByChainId(chainId);
 
     const value = parseUnits(amount, 6);
 
@@ -82,23 +81,36 @@ const Dashboard = () => {
       }
       setDepositLoading(true);
 
-      const employees = await axios.get("https://uniflow-backend.apurvaborhade.dev/api/employees").then((res) => res.data.data);
-      console.log("Employees : ", employees)
-      const totalSalary = employees.reduce((acc: number, employee: any) => acc + Number(employee.salaryAmount), 0);
+      const employees = await axios
+        .get("https://uniflow-backend.apurvaborhade.dev/api/employees")
+        .then((res) => res.data.data);
+      console.log("Employees : ", employees);
+      const totalSalary = employees.reduce(
+        (acc: number, employee: any) => acc + Number(employee.salaryAmount),
+        0,
+      );
       console.log("Total Salary:", totalSalary);
 
+      const approveTx = await approveUSDC(
+        chainId!,
+        address!,
+        TREASURY_ADDRESS,
+        totalSalary.toString(),
+      );
 
-      const approveTx = await approveUSDC(chainId!, address!, TREASURY_ADDRESS, totalSalary.toString());
-
-      const transferTx = await transfer(chainId!, address!, TREASURY_ADDRESS, totalSalary.toString());
+      const transferTx = await transfer(
+        chainId!,
+        address!,
+        TREASURY_ADDRESS,
+        totalSalary.toString(),
+      );
 
       await deposit(["ethereum", "base", "arc"]);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     } finally {
       setDepositLoading(false);
     }
-
   }
   useEffect(() => {
     if (success) {
@@ -119,7 +131,7 @@ const Dashboard = () => {
         );
         const balances = response.data.balances;
         const totalFunds = Object.values(balances)
-          .map((val: unknown) => Number(val as string) || 0) // convert each value to number safely
+          .map((val: unknown) => Number(val as string) || 0)
           .reduce((acc, curr) => acc + curr, 0);
 
         setTotalTreasury(totalFunds);

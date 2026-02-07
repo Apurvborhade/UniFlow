@@ -72,10 +72,6 @@ export default function Navbar() {
       {/* Connect Wallet Button */}
       <ConnectKitButton />
 
-      {/* Mobile Menu */}
-
-      
-
       <button
         className="md:hidden flex items-center justify-center"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
