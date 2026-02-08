@@ -15,6 +15,7 @@ import PayrollModal from "@/components/payrollcard";
 import { erc20Abi, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import { TREASURY_ADDRESS } from "../../utils/constants";
+import DepositModal from "@/components/DepositModal";
 const Dashboard = () => {
   const { address } = useAccount();
 
@@ -29,47 +30,12 @@ const Dashboard = () => {
   const [payrollReserve, setPayrollReserve] = useState(0);
   const [availableFunds, setAvailableFunds] = useState<number>(0);
   const [YeildVault, setYeildVault] = useState(0);
+  const [openModal, setOpenModal] = useState(false);
+  
 
-  async function approveUSDC(
-    chainId: number,
-    account: `0x${string}`,
-    spender: `0x${string}`,
-    amount: string,
-  ) {
-    const { publicClient, walletClient, config } = getClientsByChainId(chainId);
-
-    const value = parseUnits(amount, 6);
-
-    const { request } = await publicClient.simulateContract({
-      account,
-      address: config.usdc,
-      abi: erc20Abi,
-      functionName: "approve",
-      args: [spender, value],
-    });
-
-    return walletClient.writeContract(request);
-  }
-
-  async function transfer(
-    chainId: number,
-    account: `0x${string}`,
-    spender: `0x${string}`,
-    amount: string,
-  ) {
-    const { publicClient, walletClient, config } = getClientsByChainId(chainId);
-
-    const value = parseUnits(amount, 6);
-
-    const { request } = await publicClient.simulateContract({
-      account,
-      address: config.usdc,
-      abi: erc20Abi,
-      functionName: "transfer",
-      args: [spender, value],
-    });
-
-    return walletClient.writeContract(request);
+  
+  async function onClose() {
+    setOpenModal(false);
   }
   async function onDepositClick() {
     try {
@@ -82,33 +48,12 @@ const Dashboard = () => {
         toast.error("Select at least one chain");
         return;
       }
+
+      setOpenModal(true);
       setDepositLoading(true);
-
-      const employees = await axios
-        .get("https://uniflow-backend.apurvaborhade.dev/api/employees")
-        .then((res) => res.data.data);
-      console.log("Employees : ", employees);
-      const totalSalary = employees.reduce(
-        (acc: number, employee: any) => acc + Number(employee.salaryAmount),
-        0,
-      );
-      console.log("Total Salary:", totalSalary);
-
-      const approveTx = await approveUSDC(
-        chainId!,
-        address!,
-        TREASURY_ADDRESS,
-        totalSalary.toString(),
-      );
-
-      const transferTx = await transfer(
-        chainId!,
-        address!,
-        TREASURY_ADDRESS,
-        totalSalary.toString(),
-      );
-
-      await deposit(["ethereum", "base", "arc"]);
+    
+      
+      
     } catch (error) {
       console.log(error);
     } finally {
@@ -210,12 +155,13 @@ const Dashboard = () => {
 
             <div className="flex gap-3">
               <PayrollModal />
+              <DepositModal openModal={openModal} onClose={onClose} />
               <Button
                 onClick={onDepositClick}
-                disabled={loading}
+                disabled={depositLoading}
                 className="bg-black cursor-pointer hover:scale-105 hover:bg-black text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base"
               >
-                {loading ? "Depositing..." : "+ Deposit Funds"}
+                {depositLoading ? "Depositing..." : "+ Deposit Funds"}
               </Button>
             </div>
           </div>
@@ -250,54 +196,7 @@ const Dashboard = () => {
 
         <div className="w-full grid grid-cols-3 gap-5 mb-8">
           {/* Balance Trends Chart */}
-          <div className="col-span-2 bg-white border border-gray-700 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-black mb-4">
-              Balance trends
-            </h3>
-            <BalanceTrendsChart />
-          </div>
-
-          {/* Right Column Stats */}
-          <div className="flex flex-col justify-between gap-6">
-            <div className="bg-white border overflow-hidden flex-2 h-full border-gray-700 rounded-xl p-6">
-              <h3 className="text-black text-lg font-semibold mb-4">
-                Monthly inflow
-              </h3>
-              <motion.span
-                initial={{ opacity: 0, y: "30%" }}
-                animate={{ opacity: 1, y: "0%" }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="block"
-              >
-                <p className="text-3xl font-extrabold text-black">$44,000</p>
-              </motion.span>
-              {countDone && (
-                <motion.span
-                  initial={{ opacity: 0, y: "30%" }}
-                  animate={{ opacity: 1, y: "0%" }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="block"
-                >
-                  <p className="text-[#26FF00] pt-3 text-[20px]  font-bold mt-2">
-                    ↑ 12% from last month
-                  </p>
-                </motion.span>
-              )}
-            </div>
-
-            <div className="bg-white border  flex-1   h-full  border-gray-700 rounded-xl p-6">
-              <h3 className="text-black font-bold mb-4">Current APY</h3>
-              <motion.span
-                initial={{ opacity: 0, y: "30%" }}
-                whileInView={{ opacity: 1, y: "0%" }}
-                viewport={{ once: true, amount: 1 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="block"
-              >
-                <p className="text-3xl font-bold text-black">{APY * 100}%</p>
-              </motion.span>
-            </div>
-          </div>
+        
         </div>
         {/* Deploy to Yield Section */}
         <div className="grid w-full grid-cols-3 gap-6">
@@ -342,13 +241,29 @@ const Dashboard = () => {
               Capital Deployed for Yield
             </p>
 
-            <div className="mt-6 flex items-center justify-between text-sm">
-              <span className="text-gray-500">Current APY</span>
-              <span className="font-semibold text-black">8.5%</span>
-            </div>
-
-            <div className="mt-2 text-xs text-gray-500">
-              Yield rate applied to deployed liquidity
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-500">Base APY (USYC)</span>
+              <span className="font-semibold text-black">3.45%</span>
+              </div>
+              
+              <div className="pt-2 border-t border-gray-200">
+              <p className="text-xs text-gray-500 mb-2">Bonus APY (Lock-up)</p>
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                <span className="text-gray-600">1 Month</span>
+                <span className="font-medium text-black">7.50%</span>
+                </div>
+                <div className="flex justify-between">
+                <span className="text-gray-600">3 Months</span>
+                <span className="font-medium text-black">13.50%</span>
+                </div>
+                <div className="flex justify-between">
+                <span className="text-gray-600">12 Months</span>
+                <span className="font-medium text-green-600">16.90%</span>
+                </div>
+              </div>
+              </div>
             </div>
           </div>
         </div>
