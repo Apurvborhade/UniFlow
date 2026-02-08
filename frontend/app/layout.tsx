@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Uniflow",
- 
+  description: "Payroll and treasury management for Web3 teams",
 };
 
 export default function RootLayout({
