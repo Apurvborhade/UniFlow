@@ -23,7 +23,7 @@ const Dashboard = () => {
   const [totalTreasury, setTotalTreasury] = useState(0);
   const [selectedChains] = useState<string[]>(["Base Sepolia"]);
   const { deposit, loading, success, error } = useDeposit();
-  const [trigger, setTrigger] = useState(false);
+ 
   const [depositLoading, setDepositLoading] = useState(false);
   const { isConnected, chainId } = useAccount();
   const [payrollReserve, setPayrollReserve] = useState(0);
@@ -142,7 +142,7 @@ const Dashboard = () => {
     };
 
     fetchTreasury();
-  }, []);
+  }, [totalTreasury]);
   useEffect(() => {
     const fetchAvailableFunds = async () => {
       try {
