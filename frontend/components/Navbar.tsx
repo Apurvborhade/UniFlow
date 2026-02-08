@@ -36,7 +36,7 @@ export default function Navbar() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between relative">
+    <div className="max-w-7xl w-full mx-auto px-5 py-4 flex items-center justify-between absolute top-0 left-1/2 -translate-x-1/2 z-50">
       <Link href="/" className="text-6xl font-bold text-gray-900">
         Uniflow
       </Link>

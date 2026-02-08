@@ -4,9 +4,9 @@ import Navbar from "@/components/Navbar";
 const layout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
-    <main className=" min-h-screen ">
+    <main className=" min-h-screen flex flex-col justify-center items-center">
       <Navbar/>
-      <div className="container py-10">{children}</div>
+      <div className="container py-10 mt-20">{children}</div>
     </main>
   );
 };
