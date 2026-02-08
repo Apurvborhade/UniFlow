@@ -58,7 +58,7 @@ const Dashboard = () => {
     refetchBalances();
   }, [trigger]);
 
-  
+
   useEffect(() => {
     setTotalTreasury(
       payrollReserve + availableFunds + yieldVault
@@ -119,98 +119,99 @@ const Dashboard = () => {
   };
 
   return (
-    <section className="max-w-5xl mx-auto px-5 py-4">
+    <section className=" ">
+      <div className="max-w-5xl mx-auto px-5 py-4 ">
+        <div className="bg-white border border-black rounded-xl p-6 mb-8">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-lg font-medium mb-3">
+                Total Treasury
+              </h2>
+              <motion.p className="text-5xl font-extrabold">
+                {totalTreasury.toLocaleString(undefined, {
+                  maximumFractionDigits: 3,
+                })}
+              </motion.p>
+              <p className="text-gray-600 mt-1">USDC Balance</p>
+            </div>
 
-      <div className="bg-white border border-black rounded-xl p-6 mb-8">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-lg font-medium mb-3">
-              Total Treasury
-            </h2>
-            <motion.p className="text-5xl font-extrabold">
-              {totalTreasury.toLocaleString(undefined, {
-                maximumFractionDigits: 3,
-              })}
-            </motion.p>
-            <p className="text-gray-600 mt-1">USDC Balance</p>
+            <div className="flex gap-3">
+              <PayrollModal />
+              <DepositModal
+                openModal={openModal}
+                onClose={() => setOpenModal(false)}
+                setTrigger={setTrigger}
+              />
+              <Button
+                onClick={onDepositClick}
+                disabled={depositLoading}
+              >
+                + Deposit Funds
+              </Button>
+            </div>
           </div>
 
-          <div className="flex gap-3">
-            <PayrollModal />
-            <DepositModal
-              openModal={openModal}
-              onClose={() => setOpenModal(false)}
-              setTrigger={setTrigger}
-            />
-            <Button
-              onClick={onDepositClick}
-              disabled={depositLoading}
+          <hr className="my-6" />
+
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <p className="text-gray-600 mb-1">
+                Available for Yield
+              </p>
+              <p className="text-2xl font-bold">
+                {availableFunds.toLocaleString()}
+              </p>
+              <span className="text-gray-500 text-sm">USDC</span>
+            </div>
+
+            <div className="text-right">
+              <p className="text-gray-600 mb-1">
+                Payroll Reserve
+              </p>
+              <p className="text-2xl font-bold text-blue-600">
+                {payrollReserve.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* YIELD SECTION */}
+        <div className="grid grid-cols-3 gap-6">
+          <div className="col-span-2 bg-white border rounded-xl p-6">
+            <h3 className="text-lg font-bold mb-2">
+              Deploy to Yield
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Earn returns on idle funds
+            </p>
+
+            <motion.button
+              onClick={deployToYieldVault}
+              disabled={yieldFarmingLoading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full bg-black text-white py-3 rounded-lg font-semibold"
             >
-              + Deposit Funds
-            </Button>
-          </div>
-        </div>
-
-        <hr className="my-6" />
-
-        <div className="grid grid-cols-2 gap-8">
-          <div>
-            <p className="text-gray-600 mb-1">
-              Available for Yield
-            </p>
-            <p className="text-2xl font-bold">
-              {availableFunds.toLocaleString()}
-            </p>
-            <span className="text-gray-500 text-sm">USDC</span>
+              {yieldFarmingLoading
+                ? "Deploying..."
+                : "Deploy capital"}
+            </motion.button>
           </div>
 
-          <div className="text-right">
-            <p className="text-gray-600 mb-1">
-              Payroll Reserve
+          <div className="bg-white border rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-3">
+              Yield Vault
+            </h3>
+
+            <p className="text-3xl font-bold">
+              {yieldVault.toLocaleString()}
             </p>
-            <p className="text-2xl font-bold text-blue-600">
-              {payrollReserve.toLocaleString()}
+            <span className="text-gray-600 text-sm">usdy</span>
+
+            <p className="text-sm text-gray-500 mt-4">
+              Capital Deployed for Yield
             </p>
           </div>
-        </div>
-      </div>
-
-      {/* YIELD SECTION */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 bg-white border rounded-xl p-6">
-          <h3 className="text-lg font-bold mb-2">
-            Deploy to Yield
-          </h3>
-          <p className="text-sm text-gray-600 mb-6">
-            Earn returns on idle funds
-          </p>
-
-          <motion.button
-            onClick={deployToYieldVault}
-            disabled={yieldFarmingLoading}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full bg-black text-white py-3 rounded-lg font-semibold"
-          >
-            {yieldFarmingLoading
-              ? "Deploying..."
-              : "Deploy capital"}
-          </motion.button>
-        </div>
-
-        <div className="bg-white border rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-3">
-            Yield Vault
-          </h3>
-
-          <p className="text-3xl font-bold">
-            {yieldVault.toLocaleString()}
-          </p>
-          <span className="text-gray-600 text-sm">usdy</span>
-
-          <p className="text-sm text-gray-500 mt-4">
-            Capital Deployed for Yield
-          </p>
         </div>
       </div>
     </section>
