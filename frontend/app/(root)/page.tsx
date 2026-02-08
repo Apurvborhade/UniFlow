@@ -9,6 +9,7 @@ import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
 import PayrollModal from "@/components/payrollcard";
 import DepositModal from "@/components/DepositModal";
+import DeployYield from "@/components/DeployYield";
 
 const Dashboard = () => {
   const { isConnected } = useAccount();
@@ -43,6 +44,7 @@ const Dashboard = () => {
       const treasuryAmount = Number(
         treasuryRes.data.trasuryBalance?.amount
       );
+
       const usdyAmount = Number(treasuryRes.data.usdyBalance);
 
       setPayrollReserve(payroll);
@@ -87,7 +89,7 @@ const Dashboard = () => {
   };
 
 
-  const deployToYieldVault = async () => {
+  const deployToYieldVault = async (amount:any) => {
     try {
       if (!isConnected) {
         toast.error("Connect wallet first");
@@ -101,7 +103,8 @@ const Dashboard = () => {
 
       setYieldFarmingLoading(true);
 
-      const safeAmount = availableFunds.toFixed(6).toString();
+      const safeAmount = Number(amount.toFixed(6));
+     
       await axios.post(
         "http://localhost:8080/api/treasury/yield-farming/deposit",
         { depositAmount: safeAmount }
@@ -187,9 +190,9 @@ const Dashboard = () => {
             <p className="text-sm text-gray-600 mb-6">
               Earn returns on idle funds
             </p>
-
+            <DeployYield openModal={openModal} onClose={() => setOpenModal(false)} setTrigger={setTrigger} deployToYield={deployToYieldVault} />
             <motion.button
-              onClick={deployToYieldVault}
+              onClick={() => setOpenModal(true)}
               disabled={yieldFarmingLoading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
