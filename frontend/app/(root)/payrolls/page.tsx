@@ -5,6 +5,21 @@ import { motion } from "framer-motion";
 
 import { useEffect, useState } from "react";
 
+type PayrollHistoryItem = {
+  id: string;
+  employeeId: string;
+  amount: string;
+  createdAt: string;
+  transactionId: string;
+};
+
+type ParsedPayrollData = {
+  recipient: string;
+  wallet: string;
+  amount: string;
+  chain: string;
+};
+
 export default function PayrollsPage() {
   const [uploadedData, setUploadedData] = useState<ParsedPayrollData[] | null>(
     null,
@@ -12,13 +27,6 @@ export default function PayrollsPage() {
   const [employeeCount, setEmployeeCount] = useState<number | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [batchdate, setBatchDate] = useState<Date | null>(null);
-  type PayrollHistoryItem = {
-    id: string;
-    employeeId: string;
-    amount: string;
-    createdAt: string;
-    transactionId: string;
-  };
 
   const [payrollHistory, setPayrollHistory] = useState<PayrollHistoryItem[]>(
     [],
@@ -84,22 +92,41 @@ export default function PayrollsPage() {
     fetchPayrollBatch();
   }, []);
 
+  // Calculate dynamic payroll stats
+  const totalProcessed = payrollHistory.length > 0 
+    ? payrollHistory.reduce((sum, item:any) => sum + parseFloat(item.amount || 0), 0)
+    : 0;
+
+  const avgPayment = payrollHistory.length > 0
+    ? (totalProcessed / payrollHistory.length).toFixed(2)
+    : 0 as any;
+
+  const processingFeePercent = 0.01; // 1% processing fee
+  const processingFee = (totalProcessed * processingFeePercent).toFixed(2) as any;
+  const netAmount = (totalProcessed - processingFee).toFixed(2);
+
   const payrollData = {
-    totalProcessed: "$25,000",
-    ytdVolume: "YTD volume",
+    totalProcessed: `$${totalProcessed.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+    ytdVolume: payrollHistory.length > 0 ? `${payrollHistory.length} payrolls processed` : "No payrolls yet",
     usdcBalance: "USDC Balance",
-    balanceStatus: "Active",
-    distributionRate: "100%",
-    nextCycle: "in 5 days",
+    balanceStatus: totalProcessed > 0 ? "Active" : "Pending",
+    distributionRate: payrollHistory.length > 0 && employees.length > 0 
+      ? `${((payrollHistory.length / employees.length) * 100).toFixed(0)}%` 
+      : "0%",
+    nextCycle: batchdate && batchdate.getTime() > Date.now() 
+      ? batchdate.toLocaleDateString()
+      : "No scheduled cycle",
   };
+
   const recipients = [
-    { status: "Approved", count: employeeCount },
-    { status: "Pending", count: 0 },
+    { status: "Processed", count: payrollHistory.length },
+    { status: "Pending", count: Math.max(0, (employeeCount || 0) - payrollHistory.length) },
   ];
+
   const payrollSummary = {
-    avgPayment: "$5,000",
-    processingFee: "$250",
-    netAmount: "$24,750",
+    avgPayment: `$${parseFloat(avgPayment).toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+    processingFee: `$${processingFee}`,
+    netAmount: `$${netAmount}`,
   };
 
   return (
@@ -141,12 +168,6 @@ export default function PayrollsPage() {
                 </span>
               </div>
               <hr className="border-gray-400 my-2" />
-              <div className="flex justify-between">
-                <span>Next Cycle</span>
-                <span className="text-gray-900 font-semibold">
-                  {batchdate ? batchdate.toLocaleDateString() : "No data"}
-                </span>
-              </div>
             </div>
           </div>
 
