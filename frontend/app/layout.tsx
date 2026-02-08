@@ -20,7 +20,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Uniflow",
   description: "Payroll and treasury management for Web3 teams",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
+
 
 export default function RootLayout({
   children,
