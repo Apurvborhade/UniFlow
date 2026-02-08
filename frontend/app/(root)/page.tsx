@@ -31,11 +31,38 @@ const Dashboard = () => {
   const [availableFunds, setAvailableFunds] = useState<number>(0);
   const [YeildVault, setYeildVault] = useState(0);
   const [openModal, setOpenModal] = useState(false);
-  
+  const [yeildFarmingLoading, setYieldFarmingLoading] = useState(false);
 
-  
+
   async function onClose() {
     setOpenModal(false);
+  }
+
+  async function deployToYieldVault() {
+    try {
+      if (!isConnected) {
+        toast.error("Connect wallet first");
+        return;
+      }
+      if (availableFunds === 0) {
+        toast.error("No funds available for deployment");
+        return;
+      }
+      setYieldFarmingLoading(true);
+      await axios.post(
+        "http://localhost:8080/api/treasury/yield-farming/deposit",
+        {
+          depositAmount: availableFunds,
+        },
+      );
+      setTrigger((prev) => !prev);
+      toast.success("Funds deployed to yield vault successfully");
+    } catch (error) {
+      toast.error("Error deploying to yield vault");
+      console.log(error);
+    } finally {
+      setYieldFarmingLoading(false);
+    }
   }
   async function onDepositClick() {
     try {
@@ -51,9 +78,9 @@ const Dashboard = () => {
 
       setOpenModal(true);
       setDepositLoading(true);
-    
-      
-      
+
+
+
     } catch (error) {
       console.log(error);
     } finally {
@@ -78,7 +105,7 @@ const Dashboard = () => {
           "https://uniflow-backend.apurvaborhade.dev/api/payroll/balance",
         );
         const balances = Number(response.data.balances["Arc Testnet"])
-        
+
 
         setPayrollReserve(balances);
       } catch (error) {
@@ -88,6 +115,7 @@ const Dashboard = () => {
 
     fetchTreasury();
   }, []);
+
   useEffect(() => {
     const fetchAvailableFunds = async () => {
       try {
@@ -196,7 +224,7 @@ const Dashboard = () => {
 
         <div className="w-full grid grid-cols-3 gap-5 mb-8">
           {/* Balance Trends Chart */}
-        
+
         </div>
         {/* Deploy to Yield Section */}
         <div className="grid w-full grid-cols-3 gap-6">
@@ -210,11 +238,12 @@ const Dashboard = () => {
             <motion.button
               whileHover={{ y: -1, scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => alert("Deploying capital...")}
+              onClick={deployToYieldVault}
+                disabled={yeildFarmingLoading}
               transition={{ ease: "easeOut", duration: 0.2 }}
               className="group  mt-7 cursor-pointer relative w-full overflow-hidden rounded-lg bg-black py-3 font-semibold text-white"
             >
-              <span className="relative z-10">Deploy capital</span>
+              <span className="relative z-10">{yeildFarmingLoading ? "Deploying..." : "Deploy capital"}</span>
             </motion.button>
           </div>
 
@@ -225,7 +254,7 @@ const Dashboard = () => {
               initial={{ opacity: 0, y: "30%" }}
               animate={{ opacity: 1, y: "0%" }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="block text-3xl font-bold text-blacktext-3xl text-black"
+              className="block text-3xl font-bold text-black"
             >
               <p className="text-3xl font-bold text-black">
                 {YeildVault.toLocaleString(undefined, {
@@ -243,26 +272,26 @@ const Dashboard = () => {
 
             <div className="mt-6 space-y-3">
               <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Base APY (USYC)</span>
-              <span className="font-semibold text-black">3.45%</span>
+                <span className="text-gray-500">Base APY (USYC)</span>
+                <span className="font-semibold text-black">3.45%</span>
               </div>
-              
+
               <div className="pt-2 border-t border-gray-200">
-              <p className="text-xs text-gray-500 mb-2">Bonus APY (Lock-up)</p>
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                <span className="text-gray-600">1 Month</span>
-                <span className="font-medium text-black">7.50%</span>
+                <p className="text-xs text-gray-500 mb-2">Bonus APY (Lock-up)</p>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">1 Month</span>
+                    <span className="font-medium text-black">7.50%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">3 Months</span>
+                    <span className="font-medium text-black">13.50%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">12 Months</span>
+                    <span className="font-medium text-green-600">16.90%</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                <span className="text-gray-600">3 Months</span>
-                <span className="font-medium text-black">13.50%</span>
-                </div>
-                <div className="flex justify-between">
-                <span className="text-gray-600">12 Months</span>
-                <span className="font-medium text-green-600">16.90%</span>
-                </div>
-              </div>
               </div>
             </div>
           </div>
