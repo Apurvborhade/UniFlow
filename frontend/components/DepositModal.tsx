@@ -6,7 +6,7 @@ import { useState } from "react";
 import { erc20Abi, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-function DepositModal({ openModal, onClose }: { openModal: boolean, onClose: () => void }) {
+function DepositModal({ openModal, onClose, setTrigger }: { openModal: boolean, onClose: () => void, setTrigger: React.Dispatch<React.SetStateAction<boolean>> }) {
     if (!openModal) return null;
     const [amount, setAmount] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +86,7 @@ function DepositModal({ openModal, onClose }: { openModal: boolean, onClose: () 
 
             await deposit(["ethereum", "base", "arc"]);
             onClose();
+            setTrigger((prev) => !prev);
         } finally {
             setIsLoading(false);
         }

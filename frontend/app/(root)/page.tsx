@@ -140,6 +140,7 @@ const Dashboard = () => {
             <DepositModal
               openModal={openModal}
               onClose={() => setOpenModal(false)}
+              setTrigger={setTrigger}
             />
             <Button
               onClick={onDepositClick}
