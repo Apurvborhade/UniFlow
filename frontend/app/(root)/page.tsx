@@ -211,6 +211,30 @@ const Dashboard = () => {
             <p className="text-sm text-gray-500 mt-4">
               Capital Deployed for Yield
             </p>
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">Base APY (USYC)</span>
+                <span className="font-semibold text-black">3.45%</span>
+              </div>
+
+              <div className="pt-2 border-t border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">Bonus APY (Lock-up)</p>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">1 Month</span>
+                    <span className="font-medium text-black">7.50%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">3 Months</span>
+                    <span className="font-medium text-black">13.50%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">12 Months</span>
+                    <span className="font-medium text-green-600">16.90%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
