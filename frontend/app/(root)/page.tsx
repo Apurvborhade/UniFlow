@@ -50,7 +50,7 @@ const Dashboard = () => {
       }
       setYieldFarmingLoading(true);
       await axios.post(
-        "http://localhost:8080/api/treasury/yield-farming/deposit",
+        "https://uniflow-backend.apurvaborhade.dev/api/treasury/yield-farming/deposit",
         {
           depositAmount: availableFunds,
         },
