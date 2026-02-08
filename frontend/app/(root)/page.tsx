@@ -209,7 +209,7 @@ const Dashboard = () => {
             <p className="text-3xl font-bold">
               {yieldVault.toLocaleString()}
             </p>
-            <span className="text-gray-600 text-sm">usdy</span>
+            <span className="text-gray-600 text-sm">USYC</span>
 
             <p className="text-sm text-gray-500 mt-4">
               Capital Deployed for Yield
