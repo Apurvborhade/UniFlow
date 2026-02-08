@@ -52,7 +52,7 @@ const Dashboard = () => {
       await axios.post(
         "https://uniflow-backend.apurvaborhade.dev/api/treasury/yield-farming/deposit",
         {
-          depositAmount: availableFunds,
+          depositAmount: availableFunds.toString(),
         },
       );
       setTrigger((prev) => !prev);
