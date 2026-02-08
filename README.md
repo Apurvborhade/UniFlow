@@ -71,7 +71,8 @@ data via backend       (USYC)                   + mint                  blockcha
 ```
 ### Architecture Diagram
 
-<img width="2478" height="2125" alt="image" src="https://github.com/user-attachments/assets/980223c8-e02a-4dde-86af-a5d090c49b68" />
+<img width="2478" height="2129" alt="image" src="https://github.com/user-attachments/assets/edd7b293-da63-4e8a-bd64-0a8b9dd7b61e" />
+
 
 
 ---
