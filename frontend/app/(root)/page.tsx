@@ -101,10 +101,13 @@ const Dashboard = () => {
 
       setYieldFarmingLoading(true);
 
+      const safeAmount = availableFunds.toFixed(6).toString();
       await axios.post(
-        "https://uniflow-backend.apurvaborhade.dev/api/treasury/yield-farming/deposit",
-        { depositAmount: availableFunds.toString() }
+        "http://localhost:8080/api/treasury/yield-farming/deposit",
+        { depositAmount: safeAmount }
       );
+
+
 
       toast.success("Funds deployed successfully");
 
