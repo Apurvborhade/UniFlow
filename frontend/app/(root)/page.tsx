@@ -106,7 +106,7 @@ const Dashboard = () => {
       const safeAmount = Number(amount.toFixed(6));
      
       await axios.post(
-        "http://localhost:8080/api/treasury/yield-farming/deposit",
+        "https://uniflow-backend.apurvaborhade.dev/api/treasury/yield-farming/deposit",
         { depositAmount: safeAmount }
       );
 
